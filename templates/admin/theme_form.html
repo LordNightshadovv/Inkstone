@@ -1,0 +1,708 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ legend }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+<style>
+    /* Cropper Modal */
+    .cropper-modal {
+        display: none;
+        position: fixed;
+        z-index: 99999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #000 !important;
+        opacity: 1 !important;
+    }
+
+    .cropper-content {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background: #000 !important;
+    }
+
+    .cropper-body {
+        flex: 1;
+        background: #111;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cropper-footer {
+        padding: 1.5rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #fff;
+        position: relative;
+        border-top: 2px solid #ddd;
+    }
+
+    .cropper-btn-group {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .btn-cropper {
+        padding: 0.75rem 1.5rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        border: none;
+        transition: transform 0.1s;
+    }
+
+    .btn-cropper:active {
+        transform: scale(0.98);
+    }
+
+    .btn-cropper-cancel {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .btn-cropper-save {
+        background: #3A7467;
+        color: #fff;
+    }
+
+    /* Cropper View */
+    .cropper-view-box {
+        outline: 3px solid #3A7467;
+    }
+
+    .cropper-line {
+        background-color: #3A7467;
+    }
+
+    .cropper-point {
+        background-color: #3A7467;
+    }
+
+    /* Notification */
+    .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 4px;
+        color: white;
+        z-index: 10000;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        animation: slideIn 0.3s ease-out;
+        font-weight: 500;
+    }
+
+    .notification.success {
+        background: #3A7467;
+    }
+
+    .notification.error {
+        background: #ef4444;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    /* Input Preview Styles */
+    .image-preview-wrapper {
+        position: relative;
+        border-radius: 6px;
+        /* radius-md */
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        background: #f9fafb;
+    }
+
+    .card-preview-aspect {
+        aspect-ratio: 4/3;
+        width: 100%;
+        max-width: 280px;
+    }
+
+    .hero-preview-aspect {
+        aspect-ratio: 16/5;
+        /* Wider for banner */
+        width: 100%;
+        background: #1a2e35;
+    }
+</style>
+
+<div class="animate-fadeIn">
+
+    <!-- Top Bar with Actions -->
+    <div class="mb-6 flex justify-between items-center">
+        <div>
+            <h1 class="page-title">{{ legend }}</h1>
+            <p class="page-subtitle">Manage theme details and content.</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="{{ url_for('admin_themes') }}" class="btn btn-secondary">Cancel</a>
+            <button type="button" onclick="document.getElementById('themeForm').submit()"
+                class="btn btn-primary px-6">Save Theme</button>
+        </div>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" id="themeForm" class="post-form">
+        {{ form.hidden_tag() }}
+
+        <!-- Section 1: Basic Information -->
+        <div class="form-section">
+            <h3>Basic Information</h3>
+
+            <div class="form-group">
+                {{ form.name.label(class="form-label") }}
+                {{ form.name(class="form-control", id="theme-name", placeholder="e.g. Technology") }}
+                {% if form.name.errors %}
+                <span class="text-sm text-red-600 mt-1">{{ form.name.errors[0] }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.slug.label(class="form-label") }}
+                {{ form.slug(class="form-control bg-gray-50", id="theme-slug", readonly=True) }}
+                <p class="form-help">Auto-generated from name.</p>
+            </div>
+
+            <div class="form-group">
+                {{ form.description.label(class="form-label") }}
+                {{ form.description(class="form-textarea", rows=3, id="theme-description", placeholder="Short
+                description...") }}
+            </div>
+
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        {{ form.color.label(class="form-label") }}
+                        <div class="flex items-center gap-3">
+                            {{ form.color(class="form-control", type="color", id="theme-color", style="height: 42px;
+                            width: 80px; padding: 2px;") }}
+                            <span class="text-sm text-gray-500">Theme accent color</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        {{ form.icon.label(class="form-label") }}
+                        {{ form.icon(class="form-control", id="theme-icon", placeholder="Emoji e.g. 📝") }}
+                        <p class="form-help">Single emoji character.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Theme Images -->
+        <div class="form-section">
+            <h3>Theme Images</h3>
+
+            <!-- Card Image -->
+            <div class="mb-8 pb-8 border-b border-gray-100">
+                <div class="flex justify-between items-end mb-4">
+                    <div>
+                        <label class="form-label mb-1">Explore Card Image</label>
+                        <p class="form-help mt-0">Displayed in the theme grid. Recommended 4:3 ratio.</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row gap-8 items-start">
+                    <div class="flex-1 w-full">
+                        {% if theme and theme.card_image %}
+                        <div class="flex items-center gap-4 mb-3 p-3 bg-gray-50 rounded border border-gray-200 w-fit">
+                            <img src="{{ url_for('static', filename='uploads/' + theme.card_image) }}"
+                                class="h-20 w-auto rounded shadow-sm object-cover">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Current: {{ theme.card_image }}</p>
+                                <p class="text-xs text-gray-500">Upload new file to replace.</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {{ form.card_image(class="form-control", id="cardImageInput", accept="image/*") }}
+                    </div>
+
+                    <!-- Card Preview -->
+                    <div class="w-full md:w-auto flex-shrink-0">
+                        <div class="image-preview-wrapper card-preview-aspect group relative shadow-md">
+                            <img id="preview-card-img"
+                                src="{{ url_for('static', filename='uploads/' + theme.card_image) if theme and theme.card_image else 'https://placehold.co/800x600/3A7467/FFFFFF?text=Preview' }}"
+                                class="w-full h-full object-cover">
+
+                            <!-- Overlay Preview -->
+                            <div class="absolute inset-0 bg-gray-900/40 p-5 flex flex-col justify-end">
+                                <h2 id="preview-card-title"
+                                    class="text-white font-serif font-bold text-lg leading-tight mb-1 truncate">
+                                    {{ theme.name if theme else 'Theme Name' }}
+                                </h2>
+                                <p id="preview-card-desc" class="text-gray-200 text-xs line-clamp-2">
+                                    {{ theme.description if theme else 'Description...' }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="text-center mt-2 text-xs text-gray-400">Card Preview</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hero Banner -->
+            <div>
+                <div class="flex justify-between items-end mb-4">
+                    <div>
+                        <label class="form-label mb-1">Hero Page Banner</label>
+                        <p class="form-help mt-0">Displayed at the top of the theme page. Wide aspect ratio.</p>
+                    </div>
+                    <button type="button" id="useCardImageBtn" class="btn btn-sm btn-secondary">
+                        <i data-lucide="copy" class="w-3 h-3"></i> Use Card Image
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    {% if theme and theme.background_image %}
+                    <div class="flex items-center gap-4 mb-3 p-3 bg-gray-50 rounded border border-gray-200 w-fit">
+                        <img src="{{ url_for('static', filename='uploads/' + theme.background_image) }}"
+                            class="h-20 w-auto rounded shadow-sm object-cover">
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">Current: {{ theme.background_image }}</p>
+                            <p class="text-xs text-gray-500">Upload new file to replace.</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {{ form.background_image(class="form-control", id="heroImageInput", accept="image/*") }}
+
+                    <!-- Hero Preview -->
+                    <div class="image-preview-wrapper hero-preview-aspect relative shadow-sm">
+                        <img id="preview-hero-img"
+                            src="{{ url_for('static', filename='uploads/' + theme.background_image) if theme and theme.background_image else 'https://placehold.co/1600x500/1a2e35/222222?text=Banner' }}"
+                            class="w-full h-full object-cover">
+
+                        <div class="absolute inset-0 bg-gray-900/60 mix-blend-multiply"></div>
+
+                        <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+                            <div
+                                class="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center mb-2 border border-white/20 text-white shadow-lg">
+                                <span id="preview-hero-icon" class="text-lg">{{ theme.icon if theme else '📝' }}</span>
+                            </div>
+                            <h1 id="preview-hero-title"
+                                class="text-2xl font-serif font-black text-white mb-1 tracking-tight">
+                                {{ theme.name if theme else 'Theme Name' }}
+                            </h1>
+                            <p id="preview-hero-desc"
+                                class="text-xs text-ink-light font-serif italic max-w-sm opacity-80">
+                                {{ theme.description if theme else 'Description will appear here...' }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="text-center text-xs text-gray-400">Banner Preview</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Configuration -->
+        <div class="form-section">
+            <h3>Configuration</h3>
+            <div class="space-y-4">
+                <label class="checkbox-label p-4 border rounded-md hover:bg-gray-50 transition-colors">
+                    {{ form.is_active() }}
+                    <div>
+                        <span class="checkbox-text font-bold">Publicly Visible</span>
+                        <p class="text-xs text-gray-500 mt-0.5">Theme is live and viewable by visitors.</p>
+                    </div>
+                </label>
+
+                <label class="checkbox-label p-4 border rounded-md hover:bg-gray-50 transition-colors">
+                    {{ form.is_initiative() }}
+                    <div>
+                        <span class="checkbox-text font-bold">Initiative Theme</span>
+                        <p class="text-xs text-gray-500 mt-0.5">Special theme type reserved for initiatives (restricts
+                            post types).</p>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Section 4: Post Management -->
+        {% if theme.id %}
+        <div class="form-section">
+            <h3>Manage Stories</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Add Stories Panel -->
+                <div class="bg-gray-50 p-6 rounded-md border border-gray-200">
+                    <h4 class="font-bold text-gray-700 text-sm uppercase tracking-wide mb-3">Add Stories</h4>
+                    <div class="flex gap-2 mb-3">
+                        <div class="search-input w-full relative">
+                            <i data-lucide="search" class="search-icon w-4 h-4 absolute left-3 top-3 text-gray-400"></i>
+                            <input type="text" id="post-search" placeholder="Search stories..."
+                                class="form-input w-full pl-9">
+                        </div>
+                        <button type="button" id="search-posts"
+                            class="btn btn-secondary bg-white border border-gray-300">Go</button>
+                    </div>
+                    <div id="available-posts"
+                        class="post-list bg-white h-80 overflow-y-auto border border-gray-200 rounded-md p-2">
+                        <div class="p-4 text-center text-gray-500 italic text-sm">Search above to find stories...</div>
+                    </div>
+                </div>
+
+                <!-- Active Stories Panel -->
+                <div class="bg-white p-6 rounded-md border border-gray-200 shadow-sm">
+                    <h4
+                        class="font-bold text-gray-700 text-sm uppercase tracking-wide mb-3 flex justify-between items-center">
+                        <span>Linked Stories</span>
+                        <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs">{{ theme.posts|length
+                            }}</span>
+                    </h4>
+                    <div id="theme-posts-list"
+                        class="post-list bg-white h-80 overflow-y-auto border border-gray-200 rounded-md">
+                        {% if theme.posts %}
+                        {% for post in theme.posts %}
+                        <div class="post-item p-3 border-b flex justify-between items-center group"
+                            data-post-id="{{ post.id }}">
+                            <div class="min-w-0">
+                                <div class="font-medium text-sm text-gray-900 truncate">{{ post.title }}</div>
+                                <div class="text-xs text-gray-500 flex items-center gap-1.5 mt-0.5">
+                                    <i data-lucide="calendar" class="w-3 h-3 opacity-50"></i>
+                                    {{ post.publication_date.strftime('%b %d, %Y') if post.publication_date else 'Draft'
+                                    }}
+                                </div>
+                            </div>
+                            <button type="button" class="text-gray-400 hover:text-red-600 transition-colors remove-post"
+                                data-post-id="{{ post.id }}">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <div class="h-full flex flex-col items-center justify-center text-gray-400 gap-2">
+                            <i data-lucide="folder-open" class="w-8 h-8 opacity-20"></i>
+                            <span class="text-sm italic">No stories linked yet</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Footer Actions Bottom -->
+        <div class="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-200">
+            <a href="{{ url_for('admin_themes') }}" class="btn btn-secondary">Cancel</a>
+            {{ form.submit(class="btn btn-primary px-8") }}
+        </div>
+
+    </form>
+</div>
+
+<!-- Cropper Modal -->
+<div id="cropperModal" class="cropper-modal">
+    <div class="cropper-content">
+        <div class="cropper-body">
+            <div class="h-full flex items-center justify-center">
+                <img id="cropperImage" src="" style="max-width: 100%; max-height: 100%; display: block;">
+            </div>
+        </div>
+        <div class="cropper-footer">
+            <div id="cropperInfo">
+                Use wheel to zoom, drag picture to position
+            </div>
+            <div class="cropper-btn-group">
+                <button type="button" id="cancelCrop" class="btn-cropper btn-cropper-cancel">Cancel</button>
+                <button type="button" id="confirmCrop" class="btn-cropper btn-cropper-save">Crop & Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        lucide.createIcons();
+
+        // --- Preview Updates ---
+        const nameInput = document.getElementById('theme-name');
+        const descInput = document.getElementById('theme-description');
+        const iconInput = document.getElementById('theme-icon');
+        const slugInput = document.getElementById('theme-slug');
+
+        const elements = {
+            cardTitle: document.getElementById('preview-card-title'),
+            cardDesc: document.getElementById('preview-card-desc'),
+            heroTitle: document.getElementById('preview-hero-title'),
+            heroDesc: document.getElementById('preview-hero-desc'),
+            heroIcon: document.getElementById('preview-hero-icon'),
+            cardImg: document.getElementById('preview-card-img'),
+            heroImg: document.getElementById('preview-hero-img')
+        };
+
+        function updateText() {
+            const name = nameInput.value || 'Theme Name';
+            const desc = descInput.value || 'Description...';
+            const icon = iconInput.value || '📝';
+
+            if (elements.cardTitle) elements.cardTitle.textContent = name;
+            if (elements.heroTitle) elements.heroTitle.textContent = name;
+            if (elements.cardDesc) elements.cardDesc.textContent = desc;
+            if (elements.heroDesc) elements.heroDesc.textContent = desc;
+            if (elements.heroIcon) elements.heroIcon.textContent = icon;
+
+            // Slug generation
+            if (slugInput && nameInput.value && (!slugInput.value || slugInput.dataset.auto === 'true')) {
+                slugInput.value = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                slugInput.dataset.auto = 'true';
+            }
+        }
+
+        [nameInput, descInput, iconInput].forEach(el => {
+            if (el) el.addEventListener('input', updateText);
+        });
+
+        if (slugInput) {
+            slugInput.addEventListener('input', () => slugInput.dataset.auto = 'false');
+        }
+
+
+        // --- Cropper Logic ---
+        let cropper = null;
+        let currentInputId = null;
+        const modal = document.getElementById('cropperModal');
+        const cropperImage = document.getElementById('cropperImage');
+
+        const cardInput = document.getElementById('cardImageInput');
+        const heroInput = document.getElementById('heroImageInput');
+
+        function initCropper(file, inputId) {
+            currentInputId = inputId;
+            const url = URL.createObjectURL(file);
+            cropperImage.src = url;
+
+            modal.style.display = 'block';
+
+            // Destroy prev instance
+            if (cropper) cropper.destroy();
+
+            const aspectRatio = inputId === 'cardImageInput' ? 4 / 3 : 3.2; // 3.2 (16:5) for Hero content strip
+
+            cropper = new Cropper(cropperImage, {
+                aspectRatio: aspectRatio,
+                viewMode: 0,
+                dragMode: 'move',
+                autoCropArea: 0.8,
+                restore: false,
+                guides: true,
+                center: true,
+                highlight: false,
+                cropBoxMovable: false,
+                cropBoxResizable: false,
+                toggleDragModeOnDblclick: false,
+            });
+        }
+
+        function handleFileSelect(e) {
+            if (e.target.files && e.target.files[0]) {
+                const file = e.target.files[0];
+                if (file._cropped) return; // avoid recursive loop
+
+                initCropper(file, e.target.id);
+            }
+        }
+
+        if (cardInput) cardInput.addEventListener('change', handleFileSelect);
+        if (heroInput) heroInput.addEventListener('change', handleFileSelect);
+
+        document.getElementById('cancelCrop').addEventListener('click', () => {
+            modal.style.display = 'none';
+            if (cropper) cropper.destroy();
+            if (currentInputId) {
+                const input = document.getElementById(currentInputId);
+                if (input) input.value = '';
+            }
+        });
+
+        document.getElementById('confirmCrop').addEventListener('click', () => {
+            if (!cropper) return;
+
+            cropper.getCroppedCanvas().toBlob((blob) => {
+                const input = document.getElementById(currentInputId);
+                const url = URL.createObjectURL(blob);
+
+                // 1. Update Live Preview
+                const previewId = currentInputId === 'cardImageInput' ? 'preview-card-img' : 'preview-hero-img';
+                const livePreview = document.getElementById(previewId);
+                if (livePreview) livePreview.src = url;
+
+                // 2. Update the actual File Input
+                if (input) {
+                    const file = new File([blob], "cropped_image.jpg", { type: "image/jpeg" });
+                    Object.defineProperty(file, '_cropped', { value: true, writable: true });
+
+                    const container = new DataTransfer();
+                    container.items.add(file);
+                    input.files = container.files;
+                }
+
+                // Close Modal
+                modal.style.display = 'none';
+                if (cropper) cropper.destroy();
+            }, 'image/jpeg', 0.9);
+        });
+
+        // --- Use Card Image Button ---
+        const useCardBtn = document.getElementById('useCardImageBtn');
+        if (useCardBtn) {
+            useCardBtn.addEventListener('click', () => {
+                const cardFile = cardInput.files[0];
+
+                if (cardFile) {
+                    initCropper(cardFile, 'heroImageInput');
+                } else {
+                    const cardThumb = document.getElementById('preview-card-img');
+                    if (cardThumb && cardThumb.src && !cardThumb.src.startsWith('data:') && !cardThumb.src.includes('placehold.co')) {
+                        fetch(cardThumb.src)
+                            .then(r => r.blob())
+                            .then(blob => {
+                                initCropper(blob, 'heroImageInput');
+                            })
+                            .catch(e => alert('Could not load card image for cropping'));
+                    } else {
+                        alert('Please select a Card Image first.');
+                    }
+                }
+            });
+        }
+
+        // --- Post Management & Notifications ---
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        const themeId = {% if theme.id %}{{ theme.id }}{% else %}null{% endif %};
+    const searchBtn = document.getElementById('search-posts');
+    const searchInp = document.getElementById('post-search');
+
+    if (searchBtn && themeId) {
+        searchBtn.addEventListener('click', () => loadPosts(searchInp.value));
+        if (searchInp) {
+            searchInp.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); loadPosts(searchInp.value); }
+            });
+        }
+        loadPosts('');
+    }
+
+    function loadPosts(query) {
+        const list = document.getElementById('available-posts');
+        if (!list) return;
+
+        list.innerHTML = '<div class="p-4 text-center text-gray-500">Loading...</div>';
+
+        fetch(`/api/posts/available-for-theme?theme_id=${themeId}&search=${encodeURIComponent(query)}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.posts && data.posts.length > 0) {
+                    list.innerHTML = data.posts.map(p => `
+                            <div class="post-item flex justify-between items-center p-3 rounded-lg hover:bg-gray-100 transition-colors">
+                                <div class="min-w-0 pr-2">
+                                    <div class="font-medium text-sm text-gray-900 truncate">${p.title}</div>
+                                    <div class="text-xs text-gray-500 truncate">by ${p.author}</div>
+                                </div>
+                                ${p.in_theme ?
+                            '<span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-medium flex-shrink-0"><i data-lucide="check" class="w-3 h-3 inline mr-1"></i>Added</span>' :
+                            `<button type="button" class="text-xs bg-white border border-gray-300 hover:bg-white hover:text-ink-main hover:border-ink-main text-gray-700 px-3 py-1.5 rounded-md shadow-sm transition-all font-medium add-post-btn flex-shrink-0" data-id="${p.id}">Add</button>`}
+                            </div>
+                        `).join('');
+
+                    list.querySelectorAll('.add-post-btn').forEach(b => {
+                        b.addEventListener('click', () => togglePost(b.dataset.id, 'add'));
+                    });
+                    lucide.createIcons();
+                } else {
+                    list.innerHTML = '<div class="p-4 text-center text-gray-500">No stories found.</div>';
+                }
+            })
+            .catch(e => {
+                list.innerHTML = '<div class="p-4 text-center text-red-500">Error loading stories.</div>';
+            });
+    }
+
+    function togglePost(postId, action) {
+        fetch(`/api/theme/${themeId}/posts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ posts: [{ id: parseInt(postId), action: action }] })
+        }).then(r => r.json()).then(d => {
+            if (d.success) {
+                showNotification(action === 'add' ? 'Story added' : 'Story removed', 'success');
+                if (d.posts) updateThemePostsList(d.posts);
+                loadPosts(searchInp.value);
+            } else {
+                showNotification('Action failed', 'error');
+            }
+        });
+    }
+
+    function updateThemePostsList(posts) {
+        const list = document.getElementById('theme-posts-list');
+        if (!list) return;
+
+        if (posts.length === 0) {
+            list.innerHTML = '<div class="h-full flex flex-col items-center justify-center text-gray-400 gap-2"><i data-lucide="folder-open" class="w-8 h-8 opacity-20"></i><span class="text-sm italic">No stories linked yet</span></div>';
+            lucide.createIcons();
+            return;
+        }
+
+        list.innerHTML = posts.map(post => `
+                <div class="post-item group flex justify-between items-center p-3 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-all" data-post-id="${post.id}">
+                    <div class="min-w-0">
+                        <div class="font-medium text-sm text-gray-900 truncate">${post.title}</div>
+                        <div class="text-xs text-gray-500 flex items-center gap-1.5 mt-0.5">
+                            <i data-lucide="calendar" class="w-3 h-3 opacity-50"></i>
+                            ${post.publication_date || 'Draft'}
+                        </div>
+                    </div>
+                    <button type="button" 
+                        class="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md remove-post" 
+                        data-post-id="${post.id}" title="Unlink Story">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `).join('');
+
+        list.querySelectorAll('.remove-post').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (confirm('Remove story from theme?')) togglePost(btn.dataset.postId, 'remove');
+            });
+        });
+        lucide.createIcons();
+    }
+
+    // Initial listener for server-rendered remove buttons
+    document.querySelectorAll('.remove-post').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (confirm('Remove story from theme?')) togglePost(btn.dataset.postId, 'remove');
+        });
+    });
+
+    });
+</script>
+{% endblock %}

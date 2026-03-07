@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{{ post.title }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Serif+SC:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ink: {
+                            main: '#0d9488',
+                            light: '#f0fdfa',
+                            dark: '#134e4a',
+                            cream: '#FDFBF7',
+                            brick: '#B91C1C',
+                            mid: '#555555'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Crimson Text"', 'serif'],
+                        sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-ink-cream font-serif text-gray-800">
+
+    <!-- Image Zoom Modal -->
+    <div id="image-zoom-modal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; cursor: zoom-out; opacity: 0; transition: opacity 0.3s ease; backdrop-filter: blur(5px);"
+        onclick="closeImageZoom()">
+        <div style="position: absolute; top: 20px; right: 20px; z-index: 10001;">
+            <button onclick="closeImageZoom()"
+                style="background: rgba(255,255,255,0.1); color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; font-size: 1.5rem; backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div
+            style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 40px;">
+            <img id="zoom-image" src="" alt=""
+                style="max-width: 95%; max-height: 95%; object-fit: contain; border-radius: 4px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); cursor: default; transition: all 0.3s ease;"
+                onclick="event.stopPropagation()">
+        </div>
+        <!-- Image info -->
+        <div
+            style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 0.75rem 1.5rem; border-radius: 50px; backdrop-filter: blur(10px); font-family: sans-serif; font-size: 0.9rem;">
+            <span id="zoom-image-name"></span>
+        </div>
+    </div>
+
+    <div id="post-modal" class="post-modal modal-visible bg-white h-screen w-screen relative">
+        <div class="modal-overlay w-full h-full p-0">
+            <div class="modal-container w-full h-full relative">
+                <a href="/"
+                    class="fixed top-6 right-6 w-10 h-10 rounded-full bg-black/10 hover:bg-black/20 text-ink-dark transition-colors border-none flex items-center justify-center text-2xl z-50 text-decoration-none">×</a>
+                <div id="modal-content" class="modal-content w-full h-full overflow-y-auto">
+                    <!-- Dynamic content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    <script>
+        const post = {{ post | tojson }};
+
+        function renderModal(post) {
+            const modalContent = document.getElementById('modal-content');
+            if (!post) return;
+
+            if (post.pictures && post.pictures.length > 0) {
+                if (post.gallery_template === 'slideshow') {
+                    renderSlideshowModal(post, modalContent);
+                } else {
+                    renderWaterfallModal(post, modalContent);
+                }
+            } else if (post.youtube_url) {
+                renderVideoModal(post, modalContent);
+            } else {
+                renderTextModal(post, modalContent);
+            }
+        }
+
+        function renderSlideshowModal(post, container) {
+            container.innerHTML = `
+        <div class="slideshow-modal w-full h-full flex flex-col">
+            <div class="h-[60vh] bg-ink-light/50 w-full relative">
+                 <div class="swiper slideshow-swiper w-full h-full">
+                    <div class="swiper-wrapper">
+                        ${post.pictures.map(pic => `
+                            <div class="swiper-slide flex items-center justify-center bg-gray-50">
+                                <img src="${pic.url}" alt="${post.title}" class="max-w-full max-h-full object-contain">
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="swiper-pagination slideshow-pagination"></div>
+                    <div class="swiper-button-next slideshow-next text-ink-main"></div>
+                    <div class="swiper-button-prev slideshow-prev text-ink-main"></div>
+                 </div>
+            </div>
+            <div class="slideshow-content max-w-4xl mx-auto p-8 md:p-12 text-left bg-white relative -mt-8 rounded-t-xl shadow-lg z-10 flex-1">
+                <span class="text-xs font-bold tracking-widest uppercase text-ink-brick mb-4 block">Gallery</span>
+                <h2 class="text-4xl font-black text-ink-dark mb-2 leading-tight">${post.title}</h2>
+                <p class="text-lg text-gray-500 italic mb-8 font-serif">By ${post.author}</p>
+                <div class="prose prose-lg prose-ink text-gray-800 leading-loose">${post.text_content || post.abstract}</div>
+            </div>
+        </div>`;
+            setTimeout(() => { new Swiper('.slideshow-swiper', { navigation: { nextEl: '.slideshow-next', prevEl: '.slideshow-prev' }, pagination: { el: '.slideshow-pagination', clickable: true }, loop: true }); }, 100);
+        }
+
+        function renderWaterfallModal(post, container) {
+            container.innerHTML = `
+        <div class="flex flex-col md:flex-row w-full h-full">
+            <div class="w-full md:w-5/12 p-8 md:p-16 overflow-y-auto bg-white border-r border-gray-100">
+                <span class="text-xs font-bold tracking-widest uppercase text-ink-brick mb-4 block">Visual Story</span>
+                <h2 class="text-4xl md:text-5xl font-black text-ink-dark mb-4 leading-tight">${post.title}</h2>
+                <p class="text-xl text-gray-500 italic mb-8 font-serif border-b border-gray-100 pb-8">By ${post.author}</p>
+                <div class="prose prose-lg prose-ink text-gray-800 leading-loose">${post.text_content || post.abstract}</div>
+            </div>
+            <div class="w-full md:w-7/12 bg-gray-50 p-4 overflow-y-auto">
+                <div class="columns-1 md:columns-2 gap-4 space-y-4">
+                    ${post.pictures.map(pic => `
+                        <div class="break-inside-avoid relative group rounded-sm overflow-hidden cursor-zoom-in" onclick="openImageZoom('${pic.url}', '${post.title}')">
+                             <img src="${pic.url}" alt="${post.title}" class="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105">
+                             <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors pointer-events-none"></div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>`;
+        }
+
+        function renderVideoModal(post, container) {
+            const videoId = extractYouTubeId(post.youtube_url);
+            container.innerHTML = `
+        <div class="flex flex-col md:flex-row w-full h-full">
+            <div class="w-full md:w-5/12 p-8 md:p-16 overflow-y-auto bg-white border-r border-gray-100">
+                <span class="text-xs font-bold tracking-widest uppercase text-ink-brick mb-4 block">Video</span>
+                <h2 class="text-4xl md:text-5xl font-black text-ink-dark mb-4 leading-tight">${post.title}</h2>
+                <p class="text-xl text-gray-500 italic mb-8 font-serif">By ${post.author}</p>
+                <div class="prose prose-lg prose-ink text-gray-800 leading-loose">${post.abstract}</div>
+            </div>
+            <div class="w-full md:w-7/12 bg-black flex items-center justify-center p-4">
+                <div class="w-full aspect-video shadow-2xl rounded-sm overflow-hidden">
+                    <iframe src="https://www.youtube.com/embed/${videoId}" class="w-full h-full" frameborder="0" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>`;
+        }
+
+        function renderTextModal(post, container) {
+            container.innerHTML = `
+        <div class="pt-24 pb-20 px-4 max-w-3xl mx-auto">
+             <div class="text-center mb-12 border-b border-gray-100 pb-12">
+                <span class="text-xs font-bold tracking-widest uppercase text-ink-brick mb-4 block">Article</span>
+                <h2 class="text-4xl md:text-6xl font-black text-ink-dark mb-6 leading-tight">${post.title}</h2>
+                <p class="text-xl text-gray-500 italic font-serif">By ${post.author}</p>
+             </div>
+             <div class="prose prose-xl prose-ink max-w-none text-gray-800 leading-loose font-serif">
+                ${post.text_content || post.abstract}
+             </div>
+        </div>`;
+        }
+
+        function extractYouTubeId(url) {
+            if (!url) return '';
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        // Image zoom functionality
+        function openImageZoom(imageSrc, imageAlt) {
+            const modal = document.getElementById('image-zoom-modal');
+            const zoomImage = document.getElementById('zoom-image');
+            const imageNameElement = document.getElementById('zoom-image-name');
+
+            zoomImage.src = imageSrc;
+            imageNameElement.textContent = imageAlt || 'Image';
+
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+
+            // Fade in animation
+            setTimeout(() => {
+                modal.style.opacity = '1';
+            }, 10);
+        }
+
+        function closeImageZoom() {
+            const modal = document.getElementById('image-zoom-modal');
+
+            // Fade out animation
+            modal.style.opacity = '0';
+            setTimeout(() => {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }, 300);
+        }
+
+        // Enhanced keyboard navigation
+        document.addEventListener('keydown', function (e) {
+            const modal = document.getElementById('image-zoom-modal');
+            if (modal && modal.style.display === 'flex') {
+                switch (e.key) {
+                    case 'Escape':
+                        closeImageZoom();
+                        break;
+                    case ' ':
+                    case 'Enter':
+                        e.preventDefault();
+                        closeImageZoom();
+                        break;
+                }
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            renderModal(post);
+        });
+    </script>
+
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #d4d4d8;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a1a1aa;
+        }
+
+        .swiper-button-next,
+        .swiper-button-prev {
+            color: #0d9488 !important;
+        }
+
+        .swiper-pagination-bullet-active {
+            background: #0d9488 !important;
+        }
+    </style>
+
+</body>
+
+</html>

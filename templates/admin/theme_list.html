@@ -1,0 +1,182 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}Themes Management{% endblock %}
+
+{% block header_actions %}
+<a href="{{ url_for('new_theme') }}" class="btn btn-primary">
+    <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+    New Theme
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="animate-fadeIn">
+
+    {% if themes %}
+    <div class="themes-grid">
+        {% for theme in themes %}
+        <a href="{{ url_for('edit_theme', theme_id=theme.id) }}" class="theme-card-link"
+            style="text-decoration: none; color: inherit;">
+            <div id="theme-card-{{ theme.id }}" class="theme-card {% if not theme.is_active %}inactive{% endif %}">
+                <div class="theme-card-image">
+                    {% if theme.card_image %}
+                    <!-- Prioritize Card Image if available -->
+                    <img src="{{ url_for('static', filename='uploads/' + theme.card_image) }}" alt="{{ theme.name }}"
+                        style="object-fit: cover; width: 100%; height: 100%;">
+                    {% elif theme.icon_file %}
+                    <img src="{{ url_for('uploaded_file', filename=theme.icon_file) }}" alt="{{ theme.name }}">
+                    {% else %}
+                    <div
+                        style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: {{ theme.color }}11; color: {{ theme.color }}; font-size: 3rem;">
+                        {{ theme.icon }}
+                    </div>
+                    {% endif %}
+
+                    <div class="theme-card-overlay">
+                        <span class="theme-change-image-btn">Edit Details</span>
+                    </div>
+                </div>
+
+                <div class="theme-card-content">
+                    <div class="theme-card-header">
+                        <h3 class="theme-card-title">{{ theme.name }}</h3>
+
+                        <!-- Actions -->
+                        <div class="flex items-center gap-2">
+                            <label class="theme-toggle-switch" title="Toggle Active Status"
+                                onclick="event.stopPropagation();">
+                                <input type="checkbox" onchange="toggleThemeActive({{ theme.id }}, this.checked)" {% if
+                                    theme.is_active %}checked{% endif %}>
+                                <span class="slider round"></span>
+                            </label>
+
+                            <div class="theme-card-menu-btn" title="More Actions"
+                                onclick="event.preventDefault(); event.stopPropagation(); toggleThemeMenu({{ theme.id }})">
+                                <i data-lucide="more-horizontal" style="width: 20px; height: 20px;"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="theme-card-description">{{ theme.description if theme.description else 'No description' }}
+                    </p>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i data-lucide="image" style="width: 64px; height: 64px; color: var(--gray-300);"></i>
+        </div>
+        <h3 style="font-family: var(--font-serif); font-size: 1.5rem; color: var(--gray-800); margin-bottom: 0.5rem;">No
+            Themes Yet</h3>
+        <p style="color: var(--gray-500); margin-bottom: 2rem;">Create your first theme to start organizing your
+            content.</p>
+        <a href="{{ url_for('new_theme') }}" class="btn btn-primary">
+            <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+            Create Theme
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function toggleThemeActive(id, isActive) {
+        fetch(`/admin/theme/${id}/toggle`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_active: isActive })
+        }).then(r => r.json()).then(d => {
+            if (d.success) {
+                const card = document.getElementById(`theme-card-${id}`);
+                if (card) {
+                    if (isActive) card.classList.remove('inactive');
+                    else card.classList.add('inactive');
+                }
+            } else {
+                alert('Failed to update status');
+            }
+        });
+    }
+
+    function toggleThemeMenu(id) {
+        // Placeholder for future menu logic
+        console.log('Menu clicked for theme', id);
+        // Maybe redirect to edit? Or show dropdown. 
+        // For now, prevent default is handled by parent onclick.
+    }
+
+    // Initialize icons
+    document.addEventListener('DOMContentLoaded', function () {
+        lucide.createIcons();
+    });
+</script>
+
+<style>
+    .themes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    /* Toggle Switch */
+    .theme-toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 36px;
+        height: 20px;
+        margin-right: 0.5rem;
+    }
+
+    .theme-toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 20px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 2px;
+        bottom: 2px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    input:checked+.slider {
+        background-color: #3A7467;
+    }
+
+    input:checked+.slider:before {
+        transform: translateX(16px);
+    }
+
+    /* Inactive State Styling */
+    .theme-card.inactive {
+        opacity: 0.7;
+        filter: grayscale(100%);
+    }
+
+    .theme-card.inactive:hover {
+        opacity: 0.9;
+        filter: grayscale(50%);
+    }
+</style>
+{% endblock %}

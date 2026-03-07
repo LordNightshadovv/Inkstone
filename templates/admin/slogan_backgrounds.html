@@ -1,0 +1,95 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}Slogan Card Backgrounds{% endblock %}
+
+{% block header_actions %}
+<button onclick="document.getElementById('upload-modal').style.display='flex'" class="btn btn-primary">
+    Upload New Background
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="slogan-grid">
+    {% for bg in backgrounds %}
+    <div class="slogan-card {% if bg.is_active %}active-card{% endif %}">
+        <div class="slogan-preview">
+            <img src="{{ url_for('static', filename='uploads/' + bg.filename) }}" alt="{{ bg.name }}">
+            {% if bg.is_active %}
+            <div class="slogan-active-badge">Active</div>
+            {% endif %}
+        </div>
+
+        <div class="slogan-info">
+            <h3>{{ bg.name }}</h3>
+            <p class="slogan-upload-date">Uploaded: {{ bg.created_at.strftime('%Y-%m-%d') }}</p>
+        </div>
+
+        <div class="slogan-actions">
+            {% if not bg.is_active %}
+            <button onclick="activateBackground({{ bg.id }})" class="btn btn-sm btn-success">Set as Active</button>
+            <button onclick="deleteBackground({{ bg.id }})" class="btn btn-sm btn-danger">Delete</button>
+            {% else %}
+            <span class="current-active-text">Currently Active</span>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Upload Modal -->
+<div id="upload-modal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="document.getElementById('upload-modal').style.display='none'">
+        <div class="modal-container" style="max-width: 500px; padding: 2rem;" onclick="event.stopPropagation()">
+            <div class="modal-header"
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0; font-size: 1.5rem;">Upload New Background</h2>
+                <button class="modal-close" onclick="document.getElementById('upload-modal').style.display='none'"
+                    style="position: static; color: #333; background: none; font-size: 2rem; width: auto; height: auto; box-shadow: none;">&times;</button>
+            </div>
+
+            <form action="{{ url_for('upload_slogan_background') }}" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="name" class="form-label">Name (Optional)</label>
+                    <input type="text" id="name" name="name" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="background_image" class="form-label">Image File</label>
+                    <input type="file" id="background_image" name="background_image" accept="image/*" required
+                        class="form-control">
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 15px; width: 100%;">Upload</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function activateBackground(id) {
+        if (!confirm('Set this background as active?')) return;
+        fetch(`/admin/slogan-backgrounds/${id}/activate`, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) location.reload();
+                else alert(data.error || 'Error');
+            });
+    }
+
+    function deleteBackground(id) {
+        if (!confirm('Delete this background?')) return;
+        fetch(`/admin/slogan-backgrounds/${id}/delete`, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) location.reload();
+                else alert(data.error || 'Error');
+            });
+    }
+
+    // Open modal on click (though handled by inline onclick, keeping this valid)
+    const openBtn = document.querySelector('.btn-primary');
+    if (openBtn) {
+        openBtn.onclick = function () {
+            document.getElementById('upload-modal').style.display = 'flex';
+        }
+    }
+</script>
+{% endblock %}

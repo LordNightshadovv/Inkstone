@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}About - Inkstone{% endblock %}
+
+{% block content %}
+<div class="animate-fadeIn max-w-5xl mx-auto py-12 px-4">
+    <!-- Header: Mission Statement -->
+    <div class="text-center mb-16">
+        <span
+            class="inline-block border-b-2 border-ink-brick pb-1 text-ink-brick font-bold tracking-widest uppercase text-xs mb-6">
+            Our Mission
+        </span>
+        <h1 class="text-4xl md:text-6xl font-serif font-black text-ink-dark mb-8 leading-tight">
+            A Canvas for <span class="italic text-ink-main relative inline-block">
+                Authentic
+                <svg class="absolute -bottom-2 left-0 w-full h-2 text-ink-mint -z-10" viewBox="0 0 100 10"
+                    preserveAspectRatio="none">
+                    <path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="8" fill="none" />
+                </svg>
+            </span> Voices
+        </h1>
+        <p class="text-xl md:text-2xl font-serif text-gray-600 leading-relaxed max-w-3xl mx-auto">
+            Inkstone is a digital sanctuary for Chinese students to explore identity, society, and creativity through
+            the written word and visual arts.
+        </p>
+    </div>
+
+    <!-- Split Layout: Manifesto & Values -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-12 mb-20 items-start">
+
+        <!-- Left: The Manifesto -->
+        <div class="md:col-span-7 space-y-6 text-lg text-gray-800 leading-loose font-serif">
+            <p>
+                <span class="font-bold text-5xl float-left mr-3 mt-[-8px] text-ink-main font-serif">W</span>
+                e are living in a time of unprecedented complexity for the Chinese diaspora. Too often, our stories are
+                told for us—filtered through the lenses of external observers, reduced to geopolitical talking points,
+                or flattened into monolithic stereotypes.
+            </p>
+            <p>
+                Inkstone was founded to reclaim that narrative space. We are a student-run collective dedicated to
+                amplifying the creative, authentic, and vibrant voices of our generation. We are not a news ticker; we
+                are a literary and artistic salon for the digital age.
+            </p>
+            <p>
+                From personal essays on navigating cultural duality to speculative fiction about our shared future, from
+                street photography in Shanghai to poetry written in dorm rooms abroad—Inkstone is the home for the
+                stories that define us, told on our own terms.
+            </p>
+            <div class="pt-4">
+                <img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=1000&auto=format&fit=crop"
+                    alt="Students working together"
+                    class="w-full h-64 object-cover rounded-sm shadow-md grayscale hover:grayscale-0 transition-all duration-700" />
+                <p class="text-xs text-gray-400 mt-2 text-right italic">Capturing the student experience.</p>
+            </div>
+        </div>
+
+        <!-- Right: What We Champion (Sidebar) -->
+        <div class="md:col-span-5 bg-ink-cream border-t-4 border-ink-main p-8 shadow-sm relative">
+            <div class="absolute -top-3 -right-3 text-ink-brick opacity-20 transform rotate-45">
+                <i data-lucide="feather" class="w-16 h-16"></i>
+            </div>
+            <h3
+                class="font-sans font-bold uppercase tracking-wider text-ink-dark mb-8 text-sm border-b border-gray-200 pb-2">
+                Our Core Pillars
+            </h3>
+            <div class="space-y-8">
+                <div class="flex gap-4 group">
+                    <div
+                        class="bg-white p-3 rounded-sm shadow-sm h-fit text-ink-brick group-hover:bg-ink-brick group-hover:text-white transition-colors">
+                        <i data-lucide="heart" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-serif font-bold text-gray-900 text-lg">Vulnerability</h4>
+                        <p class="text-sm text-gray-600 mt-2 leading-relaxed">
+                            We value raw, honest storytelling over polished PR narratives. We believe vulnerability is
+                            the bridge to understanding.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex gap-4 group">
+                    <div
+                        class="bg-white p-3 rounded-sm shadow-sm h-fit text-ink-brick group-hover:bg-ink-brick group-hover:text-white transition-colors">
+                        <i data-lucide="pen-tool" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-serif font-bold text-gray-900 text-lg">Creativity</h4>
+                        <p class="text-sm text-gray-600 mt-2 leading-relaxed">
+                            Fiction, poetry, and experimental formats are as vital as non-fiction. Imagination is our
+                            sharpest tool.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex gap-4 group">
+                    <div
+                        class="bg-white p-3 rounded-sm shadow-sm h-fit text-ink-brick group-hover:bg-ink-brick group-hover:text-white transition-colors">
+                        <i data-lucide="camera" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-serif font-bold text-gray-900 text-lg">Visuals</h4>
+                        <p class="text-sm text-gray-600 mt-2 leading-relaxed">
+                            Photography and art that capture the texture of daily life, moving beyond the postcard
+                            aesthetic.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Editorial Sections Grid -->
+    <div class="border-t border-gray-200 pt-16 mb-16">
+        <div class="flex flex-col md:flex-row justify-between items-end mb-12">
+            <div>
+                <h2 class="text-3xl font-serif font-bold text-ink-dark mb-2">Editorial Sections</h2>
+                <p class="text-gray-500">The diverse formats where our stories live.</p>
+            </div>
+            <a href="{{ url_for('index') }}#latest-stories"
+                class="text-ink-main font-bold uppercase text-xs tracking-widest hover:text-ink-dark mt-4 md:mt-0 border-b border-ink-main pb-1 transition-colors">
+                Browse The Archive
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Item 1 -->
+            <div
+                class="group p-8 border border-gray-100 hover:border-ink-main transition-all duration-300 bg-white rounded-sm hover:shadow-lg">
+                <div class="w-8 h-1 bg-gray-200 group-hover:bg-ink-brick mb-6 transition-colors"></div>
+                <h3 class="text-xl font-serif font-bold text-gray-900 mb-3 group-hover:text-ink-main transition-colors">
+                    Essays & Opinion
+                </h3>
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    Personal narratives, cultural criticism, and memoirs that challenge perspectives.
+                </p>
+            </div>
+            <!-- Item 2 -->
+            <div
+                class="group p-8 border border-gray-100 hover:border-ink-main transition-all duration-300 bg-white rounded-sm hover:shadow-lg">
+                <div class="w-8 h-1 bg-gray-200 group-hover:bg-ink-brick mb-6 transition-colors"></div>
+                <h3 class="text-xl font-serif font-bold text-gray-900 mb-3 group-hover:text-ink-main transition-colors">
+                    Fiction & Poetry
+                </h3>
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    Short stories and verse that push boundaries and explore the human condition.
+                </p>
+            </div>
+            <!-- Item 3 -->
+            <div
+                class="group p-8 border border-gray-100 hover:border-ink-main transition-all duration-300 bg-white rounded-sm hover:shadow-lg">
+                <div class="w-8 h-1 bg-gray-200 group-hover:bg-ink-brick mb-6 transition-colors"></div>
+                <h3 class="text-xl font-serif font-bold text-gray-900 mb-3 group-hover:text-ink-main transition-colors">
+                    Visual Arts
+                </h3>
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    Photo essays, illustrations, and mixed media galleries from student artists.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer CTA: Submission -->
+    <div class="bg-ink-dark text-white p-12 md:p-20 text-center rounded-sm relative overflow-hidden">
+        <!-- Abstract Background Pattern -->
+        <div class="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none">
+            <svg width="100%" height="100%">
+                <pattern id="pattern-circles" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+                    <circle cx="2" cy="2" r="2" class="text-white" fill="currentColor" />
+                </pattern>
+                <rect x="0" y="0" width="100%" height="100%" fill="url(#pattern-circles)" />
+            </svg>
+        </div>
+
+        <div class="relative z-10">
+            <h2 class="text-3xl md:text-5xl font-serif font-bold mb-6">Have a story to tell?</h2>
+            <div class="w-24 h-1 bg-ink-brick mx-auto mb-8"></div>
+            <p class="text-ink-light mb-10 max-w-xl mx-auto text-lg leading-relaxed">
+                Inkstone is an open platform. We accept submissions from Chinese students and young creatives around the
+                world, regardless of major or background.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-6">
+                <button
+                    class="bg-ink-brick hover:bg-red-600 text-white px-10 py-4 font-bold uppercase tracking-widest text-sm rounded-sm transition-transform hover:-translate-y-1 shadow-lg">
+                    Submit Your Work
+                </button>
+                <button
+                    class="bg-transparent border border-white hover:bg-white hover:text-ink-dark text-white px-10 py-4 font-bold uppercase tracking-widest text-sm rounded-sm transition-colors">
+                    Contact Editors
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

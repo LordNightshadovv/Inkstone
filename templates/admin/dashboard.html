@@ -1,0 +1,217 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}Dashboard Overview{% endblock %}
+
+{% block page_subtitle %}
+<p class="page-subtitle">Last updated: Just now</p>
+{% endblock %}
+
+{% block header_actions %}
+<a href="{{ url_for('new_post') }}" class="btn btn-primary">
+    <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+    New Post
+</a>
+<a href="{{ url_for('new_initiative_post') }}" class="btn btn-secondary" style="background: #2563eb; color: white;">
+    <i data-lucide="check-square" style="width: 16px; height: 16px;"></i>
+    New Initiative
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="animate-fadeIn">
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card border-ink-main">
+            <div class="stat-label">Total Posts</div>
+            <div class="stat-value">{{ total_posts }}</div>
+        </div>
+
+        <div class="stat-card border-ink-light">
+            <div class="stat-label">Active Themes</div>
+            <div class="stat-value">{{ total_themes }}</div>
+        </div>
+
+        <div class="stat-card border-ink-brick">
+            <div class="stat-label">Active Series</div>
+            <div class="stat-value">{{ total_series }}</div>
+        </div>
+
+        <div class="stat-card border-gray-400">
+            <div class="stat-label">Protagonists</div>
+            <div class="stat-value">{{ active_protagonists }}</div>
+        </div>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+
+        <!-- Recent Activity -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Recent Activity</h3>
+            </div>
+            <div class="card-body">
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    {% for post in recent_posts[:5] %}
+                    <li
+                        style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; font-size: 0.875rem;">
+                        <div
+                            style="width: 8px; height: 8px; border-radius: 50%; background-color: var(--ink-main); flex-shrink: 0;">
+                        </div>
+                        <span style="color: var(--gray-500); white-space: nowrap;">{{ post.publication_date.strftime('%b
+                            %d') if post.publication_date else 'N/A' }}</span>
+                        <span
+                            style="font-weight: 600; color: var(--gray-900); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{
+                            post.title }}</span>
+                        <span class="badge badge-success" style="flex-shrink: 0;">Published</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Website Status -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Website Status</h3>
+            </div>
+            <div class="card-body">
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                        <span style="font-size: 0.875rem; font-weight: 600; color: var(--gray-700);">Current
+                            Status:</span>
+                        <span id="current-status-badge"
+                            class="badge {% if website_status.status == 'Public' %}badge-success{% elif website_status.status == 'Maintenance Mode' %}badge-warning{% else %}badge-info{% endif %}">
+                            {{ website_status.status }}
+                        </span>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn btn-sm btn-secondary" onclick="updateWebsiteStatus('Public')" {% if
+                            website_status.status=='Public' %}disabled style="opacity: 0.5;" {% endif %}>
+                            <i data-lucide="globe" style="width: 14px; height: 14px;"></i>
+                            Public
+                        </button>
+                        <button class="btn btn-sm btn-secondary" onclick="updateWebsiteStatus('Maintenance Mode')" {% if
+                            website_status.status=='Maintenance Mode' %}disabled style="opacity: 0.5;" {% endif %}>
+                            <i data-lucide="tool" style="width: 14px; height: 14px;"></i>
+                            Maintenance
+                        </button>
+                        <button class="btn btn-sm btn-secondary" onclick="updateWebsiteStatus('Coming Soon')" {% if
+                            website_status.status=='Coming Soon' %}disabled style="opacity: 0.5;" {% endif %}>
+                            <i data-lucide="clock" style="width: 14px; height: 14px;"></i>
+                            Coming Soon
+                        </button>
+                    </div>
+                </div>
+
+                {% if analytics.enabled %}
+                <div style="border-top: 1px solid var(--gray-100); padding-top: 1rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <div
+                                style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">
+                                Today</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--gray-900);">{{
+                                analytics.views_today }}</div>
+                            <div style="font-size: 0.75rem; color: var(--gray-500);">views</div>
+                        </div>
+                        <div>
+                            <div
+                                style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">
+                                This Week</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--gray-900);">{{
+                                analytics.views_week }}</div>
+                            <div style="font-size: 0.75rem; color: var(--gray-500);">views</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card" style="margin-top: 2rem;">
+        <div class="card-header">
+            <h3 class="card-title">Quick Actions</h3>
+        </div>
+        <div class="card-body">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <a href="{{ url_for('admin_themes') }}"
+                    style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--gray-50); border-radius: var(--radius-sm); text-decoration: none; transition: background-color 0.2s;">
+                    <i data-lucide="image" style="width: 24px; height: 24px; color: var(--ink-main);"></i>
+                    <div>
+                        <div style="font-weight: 600; color: var(--gray-900); font-size: 0.875rem;">Manage Themes</div>
+                        <div style="font-size: 0.75rem; color: var(--gray-500);">{{ total_themes }} active</div>
+                    </div>
+                </a>
+                <a href="{{ url_for('admin_series') }}"
+                    style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--gray-50); border-radius: var(--radius-sm); text-decoration: none; transition: background-color 0.2s;">
+                    <i data-lucide="book" style="width: 24px; height: 24px; color: var(--ink-main);"></i>
+                    <div>
+                        <div style="font-weight: 600; color: var(--gray-900); font-size: 0.875rem;">Manage Series</div>
+                        <div style="font-size: 0.75rem; color: var(--gray-500);">{{ total_series }} active</div>
+                    </div>
+                </a>
+                <a href="{{ url_for('admin_protagonists') }}"
+                    style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--gray-50); border-radius: var(--radius-sm); text-decoration: none; transition: background-color 0.2s;">
+                    <i data-lucide="users" style="width: 24px; height: 24px; color: var(--ink-main);"></i>
+                    <div>
+                        <div style="font-weight: 600; color: var(--gray-900); font-size: 0.875rem;">Protagonists</div>
+                        <div style="font-size: 0.75rem; color: var(--gray-500);">{{ active_protagonists }} active</div>
+                    </div>
+                </a>
+                <a href="{{ url_for('admin_slogan_backgrounds') }}"
+                    style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--gray-50); border-radius: var(--radius-sm); text-decoration: none; transition: background-color 0.2s;">
+                    <i data-lucide="pen-tool" style="width: 24px; height: 24px; color: var(--ink-main);"></i>
+                    <div>
+                        <div style="font-weight: 600; color: var(--gray-900); font-size: 0.875rem;">Website Edit</div>
+                        <div style="font-size: 0.75rem; color: var(--gray-500);">Backgrounds & more</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateWebsiteStatus(status) {
+        // Update badge immediately for better UX
+        const badge = document.getElementById('current-status-badge');
+        badge.textContent = status;
+        badge.className = 'badge';
+        if (status === 'Public') {
+            badge.classList.add('badge-success');
+        } else if (status === 'Maintenance Mode') {
+            badge.classList.add('badge-warning');
+        } else {
+            badge.classList.add('badge-info');
+        }
+
+        fetch('/admin/website-status/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status: status })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Re-enable buttons
+                    document.querySelectorAll('.btn-sm').forEach(btn => {
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                    });
+                    // Disable the active button
+                    event.target.closest('button').disabled = true;
+                    event.target.closest('button').style.opacity = '0.5';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to update status');
+            });
+    }
+</script>
+{% endblock %}

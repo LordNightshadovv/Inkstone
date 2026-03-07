@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Inkstone - Authentic Creative Voices of Chinese Students Worldwide">
+    <title>Initiatives &amp; Projects - Inkstone</title>
+
+    <!-- Tailwind CSS & Config from Redesign -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ink: {
+                            dark: '#134e4a', // Dark Jade
+                            main: '#0d9488', // Main Jade
+                            light: '#5eead4', // Light Jade
+                            mint: '#ccfbf1', // Mint
+                            brick: '#b91c1c', // Brick Red
+                            cream: '#fdfbf7', // Background cream
+                        },
+                        // Aliases for compatibility with other templates
+                        paper: {
+                            DEFAULT: '#fdfbf7',
+                            light: '#ffffff'
+                        },
+                        accent: {
+                            green: {
+                                DEFAULT: '#0d9488',
+                                dark: '#134e4a'
+                            },
+                            mint: '#ccfbf1',
+                            red: '#b91c1c'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['Merriweather', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --ink-dark: #134e4a;
+            --ink-main: #0d9488;
+            --ink-light: #5eead4;
+            --ink-mint: #ccfbf1;
+            --ink-brick: #b91c1c;
+            --ink-cream: #fdfbf7;
+
+            /* Aliases */
+            --ink-deep: var(--ink-dark);
+            --ink-mid: #4b5563;
+            /* Gray-600 */
+            --accent-green: var(--ink-main);
+            --accent-green-dark: var(--ink-dark);
+            --accent-mint: var(--ink-mint);
+            --accent-red: var(--ink-brick);
+            --paper: var(--ink-cream);
+            --paper-light: #ffffff;
+        }
+
+        body {
+            background-color: var(--ink-cream);
+            color: #1f2937;
+        }
+
+        /* Ensure Lucide icons align properly */
+        .lucide {
+            display: inline-block;
+            vertical-align: middle;
+        }
+    </style>
+
+    <!-- Meta tags for social sharing -->
+    <meta property="og:title" content="Inkstone - Authentic Creative Voices">
+    <meta property="og:description" content="Showcasing the vibrant stories of Chinese students worldwide">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Swiper CSS (keep if needed for slideshows) -->
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+    <!-- Lucide Icons (CDN since we removed npm) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white border-b-4 border-ink-main shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16 md:h-20">
+
+                <!-- Mobile Menu Button -->
+                <div class="flex items-center md:hidden">
+                    <button id="mobile-menu-btn" class="text-ink-dark hover:text-ink-main p-2">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center justify-center md:justify-start flex-1 md:flex-none">
+                    <a href="/"
+                        class="font-serif font-black text-3xl md:text-4xl tracking-tighter text-ink-dark cursor-pointer decoration-0">
+                        inkstone<span class="text-ink-brick">.</span>
+                    </a>
+                </div>
+
+                <!-- Desktop Nav -->
+                <nav class="hidden md:flex space-x-8">
+                    <a href="/"
+                        class="font-sans font-bold text-sm uppercase tracking-wide text-gray-700 hover:text-ink-main transition-colors">Home</a>
+                    <a href="/stories"
+                        class="font-sans font-bold text-sm uppercase tracking-wide text-gray-700 hover:text-ink-main transition-colors">Stories</a>
+                    <a href="/explore-themes"
+                        class="font-sans font-bold text-sm uppercase tracking-wide text-gray-700 hover:text-ink-main transition-colors">Explore
+                        Themes</a>
+                    <a href="/about"
+                        class="font-sans font-bold text-sm uppercase tracking-wide text-gray-700 hover:text-ink-main transition-colors">About</a>
+                </nav>
+
+                <!-- Actions -->
+                <div class="flex items-center space-x-2 md:space-x-4">
+                    <button
+                        class="p-2 text-ink-dark hover:bg-ink-mint rounded-full transition-colors flex items-center gap-2 group">
+                        <i data-lucide="search" class="w-5 h-5"></i>
+                    </button>
+                    <button class="hidden md:block p-2 text-gray-400 hover:text-ink-dark transition-colors">
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                    </button>
+                    <button
+                        class="hidden md:block px-4 py-2 bg-ink-dark text-white text-xs font-bold uppercase tracking-wider hover:bg-ink-main transition-colors rounded-sm shadow-sm">
+                        Subscribe
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu"
+            class="hidden md:hidden bg-ink-cream border-t border-gray-100 absolute w-full left-0 top-full">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="/"
+                    class="block px-3 py-2 rounded-md text-base font-bold text-ink-dark hover:bg-ink-mint hover:text-ink-main">Home</a>
+                <a href="/stories"
+                    class="block px-3 py-2 rounded-md text-base font-bold text-ink-dark hover:bg-ink-mint hover:text-ink-main">Stories</a>
+                <a href="/explore-themes"
+                    class="block px-3 py-2 rounded-md text-base font-bold text-ink-dark hover:bg-ink-mint hover:text-ink-main">Explore
+                    Themes</a>
+                <a href="/about"
+                    class="block px-3 py-2 rounded-md text-base font-bold text-ink-dark hover:bg-ink-mint hover:text-ink-main">About</a>
+                <div class="pt-4 pb-2 border-t border-gray-200 mt-2">
+                    <button class="w-full text-left px-3 py-2 text-ink-brick font-bold uppercase text-sm">
+                        Subscribe Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Flash Messages -->
+    
+    
+    
+
+    <!-- Main Content -->
+    
+<div class="animate-fadeIn min-h-screen">
+
+    <!-- 1. Theme Header Banner -->
+    <div class="relative h-[40vh] md:h-[50vh] w-full mb-12 shadow-md">
+        <!-- Background Image -->
+        
+        <img src="https://source.unsplash.com/1600x900/?Initiatives%20%26%20Projects" alt="Initiatives &amp; Projects"
+            class="w-full h-full object-cover"
+            onerror="this.src='https://placehold.co/1600x900/4a90e2/222222?text=Initiatives &amp; Projects'" />
+        
+        <div class="absolute inset-0 bg-ink-dark/80 mix-blend-multiply"></div>
+
+        <!-- Content Overlay -->
+        <div class="absolute inset-0 flex flex-col justify-center items-center text-center p-6 z-10">
+            <div
+                class="w-16 h-16 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center mb-6 border border-white/20 text-white shadow-lg">
+                
+                <!-- If theme has an icon/emoji, use it. Otherwise default to Hash -->
+                <span class="text-3xl">✨</span>
+                
+            </div>
+            <h1 class="text-5xl md:text-7xl font-serif font-black text-white mb-4 tracking-tight drop-shadow-lg">
+                Initiatives &amp; Projects
+            </h1>
+            <p class="text-xl text-ink-light font-serif italic max-w-2xl leading-relaxed drop-shadow-md">
+                Meaningful, creative, and valuable initiatives and projects started by Chinese students or for Chinese students. We believe they align with our mission, and we are pleased to introduce them to the world.
+            </p>
+        </div>
+    </div>
+
+    <!-- 2. Content Grid -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col sm:flex-row items-center justify-between mb-8 pb-4 border-b border-gray-200 gap-4">
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                0 Stories Found
+            </span>
+            <div class="flex gap-2">
+                <button
+                    class="text-xs font-bold text-ink-dark uppercase px-3 py-1 bg-white border border-gray-200 rounded-sm hover:bg-gray-50 transition-colors">Latest</button>
+                <button
+                    class="text-xs font-bold text-gray-400 uppercase px-3 py-1 hover:text-ink-dark transition-colors">Popular</button>
+            </div>
+        </div>
+
+        
+        <div class="py-24 text-center bg-white rounded-sm border border-dashed border-gray-200 mb-16">
+            <p class="text-gray-500 font-serif italic text-lg">No stories filed under Initiatives &amp; Projects yet.</p>
+        </div>
+        
+
+        <!-- 3. Theme Newsletter Signup -->
+        <div class="bg-ink-dark text-white p-12 rounded-sm text-center mb-16">
+            <h3 class="text-2xl font-serif font-bold mb-4">Stay updated on Initiatives &amp; Projects</h3>
+            <p class="text-ink-light mb-8">Get the latest initiatives &amp; projects stories delivered to your inbox weekly.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-2 max-w-md mx-auto">
+                <input type="email" placeholder="Email address"
+                    class="flex-1 px-4 py-3 rounded-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-ink-main" />
+                <button
+                    class="bg-ink-brick hover:bg-red-700 transition-colors px-6 py-3 font-bold uppercase text-sm rounded-sm">
+                    Join
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Footer -->
+    <footer class="bg-ink-dark text-white pt-16 pb-8 border-t-8 border-ink-brick mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+
+                <!-- Brand -->
+                <div class="col-span-1 md:col-span-1">
+                    <div class="font-serif font-black text-3xl tracking-tighter text-white mb-6">
+                        inkstone<span class="text-ink-brick">.</span>
+                    </div>
+                    <p class="text-ink-light text-sm leading-relaxed mb-6">
+                        Translating China for the world. Daily stories, insights, and analysis from the heart of
+                        Asia.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-white hover:text-ink-light transition-colors"><i data-lucide="twitter"
+                                class="w-5 h-5"></i></a>
+                        <a href="#" class="text-white hover:text-ink-light transition-colors"><i data-lucide="facebook"
+                                class="w-5 h-5"></i></a>
+                        <a href="#" class="text-white hover:text-ink-light transition-colors"><i data-lucide="instagram"
+                                class="w-5 h-5"></i></a>
+                    </div>
+                </div>
+
+                <!-- Themes (formerly Sections) -->
+                <div class="col-span-1">
+                    <h4 class="font-bold uppercase tracking-wider text-ink-mint text-sm mb-6">Themes</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="/explore-themes" class="hover:text-ink-light transition-colors">All
+                                Themes</a></li>
+                        <!-- Example Static Themes -->
+                        <li><a href="/explore-themes"
+                                class="hover:text-ink-light transition-colors">Arts & Design</a></li>
+                        <li><a href="/explore-themes"
+                                class="hover:text-ink-light transition-colors">Technology</a></li>
+                        <li><a href="/explore-themes"
+                                class="hover:text-ink-light transition-colors">Culture</a></li>
+                        <li><a href="/explore-themes"
+                                class="hover:text-ink-light transition-colors">Life</a></li>
+                    </ul>
+                </div>
+
+                <!-- About -->
+                <div class="col-span-1">
+                    <h4 class="font-bold uppercase tracking-wider text-ink-mint text-sm mb-6">About</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="/about" class="hover:text-ink-light transition-colors">Our
+                                Story</a></li>
+                        <li><a href="/about" class="hover:text-ink-light transition-colors">Contact
+                                Us</a></li>
+                        <li><a href="#" class="hover:text-ink-light transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-ink-light transition-colors">Terms of Service</a></li>
+                    </ul>
+                </div>
+
+                <!-- Newsletter -->
+                <div class="col-span-1 md:col-span-1">
+                    <h4 class="font-bold uppercase tracking-wider text-ink-mint text-sm mb-6">Daily Brief</h4>
+                    <p class="text-sm text-gray-300 mb-4">Get the top stories in your inbox every morning.</p>
+                    <form class="flex flex-col space-y-2" onsubmit="event.preventDefault(); alert('Subscribed!');">
+                        <input type="email" placeholder="Your email address"
+                            class="bg-white/10 border border-white/20 text-white placeholder-gray-400 px-4 py-2 rounded-sm focus:outline-none focus:border-ink-light text-sm" />
+                        <button
+                            class="bg-ink-brick hover:bg-red-600 text-white font-bold py-2 px-4 rounded-sm transition-colors text-sm uppercase tracking-wide">
+                            Subscribe
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+
+            <!-- Bottom Bar -->
+            <div
+                class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
+                <p>&copy; 2026 Inkstone Magazine. All rights reserved.</p>
+                <div class="flex gap-4 mt-4 md:mt-0">
+                    <span>Designed with Gemini</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Init Icons and Scripts -->
+    <script>
+        // Initialize Lucide Icons
+        document.addEventListener('DOMContentLoaded', function () {
+            lucide.createIcons();
+        });
+
+        // Mobile Menu Logic
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            const icon = mobileMenu.classList.contains('hidden') ? 'menu' : 'x';
+            // Simple re-render for icon switch would require clearing and re-adding svg, 
+            // but for simplicity we keep it as menu or toggle visibility of two icons if needed.
+            // For now, let's just toggle the menu visibility.
+        });
+    </script>
+</body>
+
+</html>

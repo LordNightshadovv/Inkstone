@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Explore Themes - Inkstone{% endblock %}
+
+{% block content %}
+<div class="animate-fadeIn max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Header -->
+    <div class="mb-12 border-b border-gray-200 pb-8">
+        <h1 class="text-4xl md:text-5xl font-serif font-black text-ink-dark mb-4">
+            Explore the Themes
+        </h1>
+        <p class="text-xl text-gray-600 max-w-3xl">
+            Navigate the complexities of China and the world through our core editorial pillars.
+        </p>
+    </div>
+
+    <!-- Themes Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+        {% for theme in themes %}
+        <a href="{{ url_for('theme_posts', theme_slug=theme.slug) }}"
+            class="group cursor-pointer relative aspect-[4/3] rounded-sm overflow-hidden block">
+            <!-- Background Image -->
+            {% if theme.card_image %}
+            <img src="{{ url_for('static', filename='uploads/' + theme.card_image) }}" alt="{{ theme.name }}"
+                class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+            {% elif theme.background_image %}
+            <img src="{{ url_for('static', filename='uploads/' + theme.background_image) }}" alt="{{ theme.name }}"
+                class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+            {% else %}
+            <img src="https://source.unsplash.com/800x600/?{{ theme.name|urlencode }}" alt="{{ theme.name }}"
+                class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                onerror="this.src='https://placehold.co/800x600/{{ theme.color[1:] }}/FFFFFF?text={{ theme.name }}'" />
+            {% endif %}
+            <div class="absolute inset-0 bg-gray-900/60 group-hover:bg-ink-dark/70 transition-colors duration-300">
+            </div>
+
+            <div class="absolute inset-0 p-8 flex flex-col justify-end">
+                <h2
+                    class="text-3xl font-serif font-bold text-white mb-2 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                    {{ theme.name }}
+                </h2>
+                <p
+                    class="text-gray-200 text-lg mb-6 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-75 line-clamp-2">
+                    {{ theme.description }}
+                </p>
+                <div
+                    class="flex items-center text-ink-light font-bold uppercase tracking-wider text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-150 gap-2">
+                    Read Stories <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Admin Login - Inkstone</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_style.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖋️</text></svg>">
+</head>
+<body>
+    <div class="admin-login">
+        <div class="admin-login-card">
+            <div class="admin-login-header">
+                <h1 class="admin-login-title">Inkstone Admin</h1>
+                <p class="admin-login-subtitle">Please login to manage your content</p>
+            </div>
+
+            <!-- Flash messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="admin-flash admin-flash-{{ 'error' if category == 'error' else 'info' }}" style="margin-bottom: 1.5rem;">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('login') }}" class="admin-form">
+                {{ form.hidden_tag() }}
+                
+                <div class="admin-form-group">
+                    {{ form.username.label(class="admin-form-label") }}
+                    {{ form.username(class="admin-form-input", placeholder="Enter username") }}
+                </div>
+                
+                <div class="admin-form-group">
+                    {{ form.password.label(class="admin-form-label") }}
+                    {{ form.password(class="admin-form-input", placeholder="Enter password") }}
+                </div>
+                
+                <div class="admin-form-group">
+                    {{ form.submit(class="btn btn-primary", style="width: 100%; justify-content: center;") }}
+                </div>
+            </form>
+
+            <div style="text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--admin-gray-200);">
+                <a href="{{ url_for('index') }}" style="color: var(--admin-gray-500); text-decoration: none; font-size: 0.875rem;">
+                    ← Back to Website
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-focus username input
+        document.addEventListener('DOMContentLoaded', function() {
+            const usernameInput = document.querySelector('input[name="username"]');
+            if (usernameInput) {
+                usernameInput.focus();
+            }
+        });
+
+        // 回车键提交表单
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const form = document.querySelector('form');
+                if (form) {
+                    form.submit();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

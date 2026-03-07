@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Featured Template T1 Preview</title>
+    <style>
+        :root {
+            --paper: #F8F6F0;
+            --ink-deep: #1A1A1A;
+            --accent-green: #3A7467;
+            --light-text: #FFFFFF;
+        }
+        
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--paper);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .preview-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
+                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><rect width="800" height="400" fill="%233A7467"/><circle cx="200" cy="150" r="80" fill="%237BAF9E" opacity="0.6"/><circle cx="600" cy="250" r="60" fill="%23C94C4C" opacity="0.4"/></svg>');
+            background-size: cover;
+            background-position: center;
+            border-radius: 16px;
+            padding: 60px 40px;
+            text-align: center;
+            color: var(--light-text);
+            position: relative;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .play-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .play-icon:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+        
+        .play-icon svg {
+            width: 32px;
+            height: 32px;
+            fill: var(--accent-green);
+            margin-left: 4px;
+        }
+        
+        .preview-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            font-family: 'Crimson Text', serif;
+        }
+        
+        .preview-abstract {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            max-width: 600px;
+            opacity: 0.95;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .template-label {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="preview-container">
+        <div class="template-label">Featured Template T1</div>
+        
+        <div class="play-icon">
+            <svg viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+            </svg>
+        </div>
+        
+        <h1 class="preview-title">Spring Festival Through Gen Z Eyes</h1>
+        <p class="preview-abstract">
+            How modern Chinese students navigate tradition and modernity during the most important holiday of the year. A cinematic exploration of cultural identity in the digital age.
+        </p>
+    </div>
+</body>
+</html>

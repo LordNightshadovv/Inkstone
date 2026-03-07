@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{% block title %}Inkstone CMS{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@400;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <!-- Brand -->
+            <div class="sidebar-brand">
+                <a href="{{ url_for('admin_dashboard') }}" class="brand-link">
+                    <span>inkstone<span style="color: #b91c1c;">.</span></span>
+                    <span class="cms-label">CMS</span>
+                </a>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="sidebar-nav">
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="{{ url_for('admin_dashboard') }}"
+                            class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+                            <i data-lucide="layout-dashboard" class="nav-icon"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('admin_posts') }}"
+                            class="nav-link {% if request.endpoint == 'admin_posts' %}active{% endif %}">
+                            <i data-lucide="file-text" class="nav-icon"></i>
+                            <span>All Posts</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('admin_themes') }}"
+                            class="nav-link {% if request.endpoint in ['admin_themes', 'new_theme', 'edit_theme'] %}active{% endif %}">
+                            <i data-lucide="image" class="nav-icon"></i>
+                            <span>Themes</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('admin_series') }}"
+                            class="nav-link {% if request.endpoint in ['admin_series', 'new_series', 'edit_series'] %}active{% endif %}">
+                            <i data-lucide="book" class="nav-icon"></i>
+                            <span>Series</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('admin_protagonists') }}"
+                            class="nav-link {% if request.endpoint in ['admin_protagonists', 'new_protagonist', 'edit_protagonist'] %}active{% endif %}">
+                            <i data-lucide="users" class="nav-icon"></i>
+                            <span>Protagonist Profiles</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('admin_keywords') }}"
+                            class="nav-link {% if request.endpoint in ['admin_keywords', 'new_keyword', 'edit_keyword'] %}active{% endif %}">
+                            <i data-lucide="tags" class="nav-icon"></i>
+                            <span>Keywords</span>
+                        </a>
+                    </li>
+
+                    <!-- Website Edit Section -->
+                    <li class="nav-divider">
+                        <a href="{{ url_for('admin_slogan_backgrounds') }}"
+                            class="nav-link {% if request.endpoint == 'admin_slogan_backgrounds' %}active{% endif %}">
+                            <i data-lucide="pen-tool" class="nav-icon"></i>
+                            <span>Website Edit</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Footer Actions -->
+            <div class="sidebar-footer">
+                <a href="{{ url_for('index') }}" target="_blank" class="nav-link">
+                    <i data-lucide="external-link" class="nav-icon"></i>
+                    <span>View Site</span>
+                </a>
+                <a href="{{ url_for('logout') }}" class="nav-link logout-btn">
+                    <i data-lucide="log-out" class="nav-icon"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
+                    {% block page_subtitle %}{% endblock %}
+                </div>
+                <div>
+                    {% block header_actions %}{% endblock %}
+                </div>
+            </div>
+
+            <!-- Content -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="alerts-container">
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category if category in ['success', 'error', 'info'] else 'info' }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            lucide.createIcons();
+        });
+    </script>
+
+    <!-- Additional Scripts -->
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

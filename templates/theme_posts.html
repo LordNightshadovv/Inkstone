@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}{{ theme.name }} - Inkstone{% endblock %}
+
+{% block content %}
+<div class="animate-fadeIn min-h-screen">
+
+    <!-- 1. Theme Header Banner -->
+    <div class="relative w-full h-[50vh] mb-12 shadow-md overflow-hidden">
+        <!-- Background Image -->
+        {% if theme.background_image %}
+        <img src="{{ url_for('static', filename='uploads/' + theme.background_image) }}" alt="{{ theme.name }}"
+            class="w-full h-full object-cover" />
+        {% else %}
+        <img src="https://source.unsplash.com/1600x900/?{{ theme.name|urlencode }}" alt="{{ theme.name }}"
+            class="w-full h-full object-cover"
+            onerror="this.src='https://placehold.co/1600x900/{{ theme.color[1:] }}/222222?text={{ theme.name }}'" />
+        {% endif %}
+        <div class="absolute inset-0 bg-ink-dark/80 mix-blend-multiply"></div>
+
+        <!-- Content Overlay -->
+        <div class="absolute inset-0 flex flex-col justify-center items-center text-center p-6 z-10">
+            <div
+                class="w-16 h-16 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center mb-6 border border-white/20 text-white shadow-lg">
+                {% if theme.icon %}
+                <!-- If theme has an icon/emoji, use it. Otherwise default to Hash -->
+                <span class="text-3xl">{{ theme.icon }}</span>
+                {% else %}
+                <i data-lucide="hash" class="w-8 h-8 text-white"></i>
+                {% endif %}
+            </div>
+            <h1 class="text-5xl md:text-7xl font-serif font-black text-white mb-4 tracking-tight drop-shadow-lg">
+                {{ theme.name }}
+            </h1>
+            <p class="text-xl text-ink-light font-serif italic max-w-2xl leading-relaxed drop-shadow-md">
+                {{ theme.description }}
+            </p>
+        </div>
+    </div>
+
+    <!-- 2. Content Grid -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col sm:flex-row items-center justify-between mb-8 pb-4 border-b border-gray-200 gap-4">
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                {{ posts|length }} Stories Found
+            </span>
+            <div class="flex gap-2">
+                <button
+                    class="text-xs font-bold text-ink-dark uppercase px-3 py-1 bg-white border border-gray-200 rounded-sm hover:bg-gray-50 transition-colors">Latest</button>
+                <button
+                    class="text-xs font-bold text-gray-400 uppercase px-3 py-1 hover:text-ink-dark transition-colors">Popular</button>
+            </div>
+        </div>
+
+        {% if posts %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+            {% for post in posts %}
+            <article
+                class="group cursor-pointer flex flex-col bg-white rounded-sm overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border-2 border-transparent hover:border-ink-main h-full">
+                <a href="{{ url_for('post', slug=post.slug) }}" class="block relative overflow-hidden h-48">
+                    {% if post.use_youtube_poster and post.youtube_embed_url %}
+                    <iframe src="{{ post.youtube_embed_url }}" title="{{ post.title }}" frameborder="0" loading="lazy"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen class="absolute inset-0 w-full h-full"></iframe>
+                    {% elif post.poster_filename %}
+                    <img src="{{ url_for('static', filename='uploads/' + post.poster_filename) }}"
+                        alt="{{ post.title }}"
+                        class="w-full h-48 object-cover transition-transform duration-700 group-hover:scale-105" />
+                    {% else %}
+                    <div class="w-full h-48 bg-gray-100 flex items-center justify-center text-gray-400">
+                        <i data-lucide="image" class="w-8 h-8 opacity-50"></i>
+                    </div>
+                    {% endif %}
+
+
+                    <!-- Category Badge -->
+                    <div class="absolute top-2 left-2">
+                        <span class="px-2 py-1 text-xs font-bold text-white bg-teal-600 rounded-sm">
+                            {{ post.theme.name if post.theme else 'Uncategorized' }}
+                        </span>
+                    </div>
+                </a>
+
+                <div class="p-5 flex-1 flex flex-col">
+                    {% if post.series %}
+                    <div class="text-xs font-bold text-teal-600 uppercase tracking-wider mb-2">
+                        {{ post.series.title }}
+                    </div>
+                    {% endif %}
+                    <a href="{{ url_for('post', slug=post.slug) }}" class="block">
+                        <h3
+                            class="text-xl font-serif font-bold text-gray-900 mb-2 leading-tight group-hover:text-ink-main transition-colors">
+                            {{ post.title }}
+                        </h3>
+                    </a>
+                    <div class="text-xs text-gray-500 mb-3">
+                        {{ post.publication_date.strftime('%B %d, %Y') if post.publication_date else '' }}
+                    </div>
+                    <p class="text-gray-600 text-sm line-clamp-3 mb-4 flex-1">
+                        {{ post.abstract }}
+                    </p>
+                    <div class="text-xs font-bold text-gray-700 border-t border-gray-100 pt-3 mt-auto">
+                        {{ post.author }}
+                        {% if post.editors or post.translated_by %}
+                        <div class="font-normal text-gray-500 mt-1">
+                            {% if post.editors %}Edited by {{ post.editors }}{% endif %}
+                            {% if post.editors and post.translated_by %} • {% endif %}
+                            {% if post.translated_by %}Translated by {{ post.translated_by }}{% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="py-24 text-center bg-white rounded-sm border border-dashed border-gray-200 mb-16">
+            <p class="text-gray-500 font-serif italic text-lg">No stories filed under {{ theme.name }} yet.</p>
+        </div>
+        {% endif %}
+
+        <!-- 3. Theme Newsletter Signup -->
+        <div class="bg-ink-dark text-white p-12 rounded-sm text-center mb-16">
+            <h3 class="text-2xl font-serif font-bold mb-4">Stay updated on {{ theme.name }}</h3>
+            <p class="text-ink-light mb-8">Get the latest {{ theme.name|lower }} stories delivered to your inbox weekly.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-2 max-w-md mx-auto">
+                <input type="email" placeholder="Email address"
+                    class="flex-1 px-4 py-3 rounded-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-ink-main" />
+                <button
+                    class="bg-ink-brick hover:bg-red-700 transition-colors px-6 py-3 font-bold uppercase text-sm rounded-sm">
+                    Join
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

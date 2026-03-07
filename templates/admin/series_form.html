@@ -1,0 +1,378 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}{{ legend }}{% endblock %}
+
+{% block header_actions %}
+<a href="{{ url_for('admin_series') }}" class="btn btn-secondary">
+    <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+    Back to Series
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="animate-fadeIn">
+    <form method="POST" class="post-form">
+        {{ form.hidden_tag() }}
+
+        <div class="form-section">
+            <h3 class="form-section-title">Series Information</h3>
+
+            <div class="form-group">
+                {{ form.title.label(class="form-label") }}
+                {{ form.title(class="form-input", placeholder="e.g. The Digital Age") }}
+                {% if form.title.errors %}
+                <div class="form-errors">
+                    {% for error in form.title.errors %}
+                    <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <p class="form-help">The title will be used to generate a URL-friendly slug automatically.</p>
+            </div>
+
+            <div class="form-group">
+                {{ form.description.label(class="form-label") }}
+                {{ form.description(class="form-textarea", rows="4", placeholder="Describe what this series is
+                about...") }}
+                {% if form.description.errors %}
+                <div class="form-errors">
+                    {% for error in form.description.errors %}
+                    <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <p class="form-help">Optional description of what this series covers.</p>
+            </div>
+
+            <div class="form-group checkbox-group">
+                <label class="checkbox-label">
+                    {{ form.is_active() }}
+                    <span class="checkbox-text">Active Series</span>
+                </label>
+                <p class="form-help">Only active series will be available for selection when creating posts.</p>
+            </div>
+        </div>
+
+        {% if series %}
+        <div class="form-section">
+            <h3 class="form-section-title">Manage Posts in Series</h3>
+
+            <div class="series-management-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <!-- Add Posts Panel -->
+                <div class="add-posts-panel"
+                    style="background: var(--gray-50); padding: 1.5rem; border-radius: var(--radius-sm); border: 1px solid var(--gray-200);">
+                    <h4 class="form-section-title" style="font-size: 1rem; margin-bottom: 1rem;">Add Posts</h4>
+                    <div class="search-box" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                        <input type="text" id="post-search" placeholder="Search posts..." class="form-input"
+                            style="flex: 1;">
+                        <button type="button" id="search-posts" class="btn btn-secondary btn-sm">Search</button>
+                    </div>
+                    <div id="available-posts" class="posts-list-container"
+                        style="max-height: 400px; overflow-y: auto; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); background: white;">
+                        <!-- Posts loaded via JS -->
+                        <div class="p-4 text-center text-gray-500 italic">Click search to find posts...</div>
+                    </div>
+                </div>
+
+                <!-- Current Posts Panel -->
+                <div class="current-posts-panel"
+                    style="background: white; padding: 1.5rem; border-radius: var(--radius-sm); border: 1px solid var(--gray-200);">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h4 class="form-section-title" style="font-size: 1rem; margin: 0;">Current Posts (Ordered)</h4>
+                        <button type="button" id="save-posts-order" class="btn btn-primary btn-sm">Save Order</button>
+                    </div>
+
+                    <div id="series-posts-list" class="posts-list-container"
+                        style="max-height: 400px; overflow-y: auto; border: 1px solid var(--gray-200); border-radius: var(--radius-sm);">
+                        {% if series.posts %}
+                        {% for post in series.posts|sort(attribute='series_order') %}
+                        <div class="post-item" data-post-id="{{ post.id }}"
+                            style="display: flex; align-items: center; padding: 0.75rem; border-bottom: 1px solid var(--gray-100);">
+                            <div class="post-content" style="flex: 1;">
+                                <div class="post-title" style="font-weight: 500; font-size: 0.9rem;">{{ post.title }}
+                                </div>
+                                <div class="post-meta" style="font-size: 0.75rem; color: var(--gray-500);">{{
+                                    post.publication_date.strftime('%b %d, %Y') if post.publication_date else 'Draft' }}
+                                </div>
+                            </div>
+                            <div class="post-order-input" style="margin: 0 0.5rem;">
+                                <input type="number" value="{{ post.series_order or loop.index }}"
+                                    class="form-input order-input" data-post-id="{{ post.id }}"
+                                    style="width: 60px; padding: 4px; font-size: 0.85rem;">
+                            </div>
+                            <button type="button" class="btn btn-sm btn-danger-outline remove-post"
+                                data-post-id="{{ post.id }}" title="Remove">
+                                <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                            </button>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <div class="empty-state-small"
+                            style="padding: 2rem; text-align: center; color: var(--gray-400); font-style: italic;">No
+                            posts in this series yet.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="form-actions"
+            style="margin-top: 2rem; border-top: 1px solid var(--gray-200); padding-top: 1.5rem; display: flex; justify-content: flex-end; gap: 1rem;">
+            <a href="{{ url_for('admin_series') }}" class="btn btn-secondary">Cancel</a>
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        lucide.createIcons();
+
+        // Series ID is available if editing
+        const seriesId = {{ series.id if series else 'null' }};
+    if (seriesId) {
+        initializePostManagement(seriesId);
+    }
+    });
+
+    function initializePostManagement(seriesId) {
+        const searchInput = document.getElementById('post-search');
+        const searchButton = document.getElementById('search-posts');
+        const saveButton = document.getElementById('save-posts-order');
+
+        // Load available posts initially
+        loadAvailablePosts(seriesId);
+
+        // Search functionality
+        searchButton.addEventListener('click', () => {
+            loadAvailablePosts(seriesId, searchInput.value);
+        });
+
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent form submission
+                loadAvailablePosts(seriesId, searchInput.value);
+            }
+        });
+
+        // Save posts order
+        if (saveButton) {
+            saveButton.addEventListener('click', savePostsOrder);
+        }
+
+        // Remove post functionality (delegated)
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.remove-post')) {
+                const btn = e.target.closest('.remove-post');
+                removePostFromSeries(btn.dataset.postId);
+            }
+
+            // Add post functionality (delegated)
+            if (e.target.closest('.add-post')) {
+                const btn = e.target.closest('.add-post');
+                addPostToSeries(btn.dataset.postId, seriesId);
+            }
+        });
+    }
+
+    function loadAvailablePosts(seriesId, search = '') {
+        const container = document.getElementById('available-posts');
+        container.innerHTML = '<div class="p-4 text-center text-gray-500 italic">Loading posts...</div>';
+
+        const url = `/api/posts/available-for-series?series_id=${seriesId}&search=${encodeURIComponent(search)}`;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.posts) {
+                    displayAvailablePosts(data.posts, seriesId);
+                } else {
+                    container.innerHTML = '<div class="p-4 text-center text-red-500">Error loading posts</div>';
+                }
+            })
+            .catch(error => {
+                container.innerHTML = '<div class="p-4 text-center text-red-500">Error loading posts</div>';
+            });
+    }
+
+    function displayAvailablePosts(posts, seriesId) {
+        const container = document.getElementById('available-posts');
+
+        if (posts.length === 0) {
+            container.innerHTML = '<div class="p-4 text-center text-gray-500 italic">No available posts found</div>';
+            return;
+        }
+
+        const postsHtml = posts.map(post => `
+        <div class="available-post-item" style="display: flex; align-items: center; padding: 0.75rem; border-bottom: 1px solid var(--gray-100); background: white;">
+            <div class="post-info" style="flex: 1;">
+                <div style="font-weight: 500; font-size: 0.9rem;">${post.title}</div>
+                <div style="font-size: 0.75rem; color: var(--gray-500);">by ${post.author} • ${post.publication_date}</div>
+            </div>
+            <div class="post-actions">
+                ${post.in_series ?
+                `<span class="badge" style="background: var(--gray-100); color: var(--gray-600); font-size: 0.75rem;">In Series</span>` :
+                `<button type="button" class="btn btn-sm btn-primary add-post" data-post-id="${post.id}" style="font-size: 0.75rem; padding: 4px 8px;">Add</button>`
+            }
+            </div>
+        </div>
+    `).join('');
+
+        container.innerHTML = postsHtml;
+    }
+
+    function addPostToSeries(postId, seriesId) {
+        const nextOrder = getNextSeriesOrder();
+
+        fetch(`/api/series/${seriesId}/posts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                posts: [{
+                    id: parseInt(postId),
+                    series_order: nextOrder,
+                    action: 'add'
+                }]
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Post added successfully', 'success');
+                    if (data.posts) updateSeriesPostsList(data.posts);
+                    loadAvailablePosts(seriesId); // Refresh available list
+                } else {
+                    showNotification('Failed to add post', 'error');
+                }
+            })
+            .catch(error => showNotification('Error adding post', 'error'));
+    }
+
+    function removePostFromSeries(postId) {
+        if (!confirm('Remove this post from the series?')) return;
+
+        const seriesId = {{ series.id if series else 'null' }};
+
+    fetch(`/api/series/${seriesId}/posts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            posts: [{
+                id: parseInt(postId),
+                action: 'remove'
+            }]
+        })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Post removed successfully', 'success');
+                if (data.posts) updateSeriesPostsList(data.posts);
+                loadAvailablePosts(seriesId); // Refresh available list
+            } else {
+                showNotification('Failed to remove post', 'error');
+            }
+        })
+        .catch(error => showNotification('Error removing post', 'error'));
+}
+
+    function savePostsOrder() {
+        const seriesId = {{ series.id if series else 'null' }};
+    const orderInputs = document.querySelectorAll('.order-input');
+    const posts = [];
+
+    orderInputs.forEach(input => {
+        posts.push({
+            id: parseInt(input.dataset.postId),
+            series_order: parseInt(input.value) || 1,
+            action: 'add'
+        });
+    });
+
+    showNotification('Saving order...', 'success');
+
+    fetch(`/api/series/${seriesId}/posts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ posts })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Order saved successfully', 'success');
+                if (data.posts) updateSeriesPostsList(data.posts);
+            } else {
+                showNotification('Failed to save order', 'error');
+            }
+        })
+        .catch(error => showNotification('Error saving order', 'error'));
+}
+
+    function updateSeriesPostsList(posts) {
+        const container = document.getElementById('series-posts-list');
+        if (!container) return;
+
+        if (posts.length === 0) {
+            container.innerHTML = '<div class="empty-state-small" style="padding: 2rem; text-align: center; color: var(--gray-400); font-style: italic;">No posts in this series yet.</div>';
+            return;
+        }
+
+        // Sort posts by series_order
+        posts.sort((a, b) => (a.series_order || 0) - (b.series_order || 0));
+
+        const postsHtml = posts.map(post => `
+        <div class="post-item" data-post-id="${post.id}" style="display: flex; align-items: center; padding: 0.75rem; border-bottom: 1px solid var(--gray-100);">
+            <div class="post-content" style="flex: 1;">
+                <div class="post-title" style="font-weight: 500; font-size: 0.9rem;">${post.title}</div>
+                <div class="post-meta" style="font-size: 0.75rem; color: var(--gray-500);">${post.publication_date || 'N/A'}</div>
+            </div>
+            <div class="post-order-input" style="margin: 0 0.5rem;">
+                <input type="number" value="${post.series_order || 1}" 
+                       min="1" class="form-input order-input" data-post-id="${post.id}"
+                       style="width: 60px; padding: 4px; font-size: 0.85rem;">
+            </div>
+            <button type="button" class="btn btn-sm btn-danger-outline remove-post" data-post-id="${post.id}" title="Remove">
+                <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+            </button>
+        </div>
+    `).join('');
+
+        container.innerHTML = postsHtml;
+        lucide.createIcons();
+    }
+
+    function getNextSeriesOrder() {
+        const orderInputs = document.querySelectorAll('.order-input');
+        let maxOrder = 0;
+        orderInputs.forEach(input => {
+            const order = parseInt(input.value) || 0;
+            if (order > maxOrder) maxOrder = order;
+        });
+        return maxOrder + 1;
+    }
+
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 4px;
+        color: white;
+        z-index: 1000;
+        background: ${type === 'success' ? '#10b981' : '#ef4444'};
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        font-size: 0.875rem;
+        font-weight: 500;
+    `;
+
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000);
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}{{ post.title }} - Inkstone{% endblock %}
+
+{% block content %}
+<!-- Article Page Container -->
+<div class="min-h-screen bg-ink-cream animate-fadeIn pb-16">
+    <!-- Top Navigation (duplicate of base/index for consistency if needed, strictly speaking base.html handles this but we want specific Redesign styles if base isn't updated fully) -->
+    <!-- Assuming base.html content block wrapper, so we just put article content here -->
+
+    <article>
+        <!-- 1. HEADER SECTION -->
+        <div class="max-w-4xl mx-auto px-4 pt-8 md:pt-12 mb-8 md:mb-12">
+            <div class="flex items-center gap-2 mb-6">
+                <a href="{{ url_for('index') }}" class="text-gray-400 hover:text-ink-dark transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-arrow-left">
+                        <path d="m12 19-7-7 7-7" />
+                        <path d="M19 12H5" />
+                    </svg>
+                </a>
+                <span
+                    class="text-xs font-bold tracking-widest uppercase text-ink-brick px-2 py-1 bg-ink-brick/10 rounded-sm">
+                    {% if post.theme %}{{ post.theme.name }}{% elif post.tags %}{{ post.tags[0].name }}{% else
+                    %}Article{% endif %}
+                </span>
+            </div>
+
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-serif font-black text-ink-dark leading-tight mb-6">
+                {{ post.title }}
+            </h1>
+
+            {% if post.abstract %}
+            <p class="text-xl md:text-2xl text-gray-500 font-serif italic mb-8 leading-relaxed">
+                {{ post.abstract }}
+            </p>
+            {% endif %}
+
+            <div class="flex items-center justify-between border-y border-gray-200 py-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
+                        <img src="https://ui-avatars.com/api/?name={{ post.author }}&background=0d9488&color=fff"
+                            alt="{{ post.author }}" />
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold text-gray-900">{{ post.author }}</div>
+                        {% if post.editors or post.translated_by %}
+                        <div class="text-xs text-gray-500 font-medium">
+                            {% if post.editors %}Edited by {{ post.editors }}{% endif %}
+                            {% if post.editors and post.translated_by %} • {% endif %}
+                            {% if post.translated_by %}Translated by {{ post.translated_by }}{% endif %}
+                        </div>
+                        {% endif %}
+                        <div class="text-xs text-gray-400 mt-0.5">{{ post.publication_date.strftime('%B %d, %Y') }} • 8
+                            min read</div>
+                    </div>
+                </div>
+                <div class="flex gap-4 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-share-2 hover:text-ink-main cursor-pointer">
+                        <circle cx="18" cy="5" r="3" />
+                        <circle cx="6" cy="12" r="3" />
+                        <circle cx="18" cy="19" r="3" />
+                        <line x1="8.59" x2="15.42" y1="13.51" y2="17.49" />
+                        <line x1="15.41" x2="8.59" y1="6.51" y2="10.49" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. HERO IMAGE -->
+        <div class="w-full mb-12">
+            {% if post.use_youtube_poster and post.youtube_embed_url %}
+            <div class="w-full h-[50vh] md:h-[70vh] bg-black">
+                <iframe src="{{ post.youtube_embed_url }}" title="{{ post.title }}" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen class="w-full h-full"></iframe>
+            </div>
+            {% elif post.poster_filename %}
+            <img src="{{ url_for('static', filename='uploads/' + post.poster_filename) }}" alt="{{ post.title }}"
+                class="w-full h-[50vh] md:h-[70vh] object-cover" />
+            {% else %}
+            <div class="w-full h-[50vh] md:h-[70vh] bg-gray-200 flex items-center justify-center text-gray-400">No Cover
+                Image</div>
+            {% endif %}
+            <div class="max-w-4xl mx-auto mt-2 text-sm text-gray-400 italic text-right px-4">
+                Image credit: Inkstone Archive
+            </div>
+        </div>
+
+        <!-- 3. CONTENT LAYOUT (Sidebar + Main) -->
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 px-4">
+
+            <!-- LEFT SIDEBAR (Share & Series) -->
+            <aside class="hidden lg:block lg:col-span-3">
+                <div class="sticky top-24 space-y-8">
+                    <!-- Series Component -->
+                    {% if post.series %}
+                    <div class="bg-white border border-gray-100 rounded-sm p-6 shadow-sm">
+                        <div class="text-xs font-bold text-ink-brick uppercase tracking-widest mb-4">
+                            In This Series
+                        </div>
+                        <h4 class="font-serif font-bold text-lg mb-4 leading-tight">
+                            {{ post.series.title }}
+                        </h4>
+                        <ul class="space-y-3 relative">
+                            <div class="absolute left-1.5 top-2 bottom-2 w-px bg-gray-200"></div>
+                            {% for series_post in post.series.posts %}
+                            <li class="relative pl-6">
+                                <div
+                                    class="absolute left-0 top-1.5 w-3 h-3 rounded-full border-2 {{ 'bg-ink-main border-ink-main' if series_post.id == post.id else 'bg-white border-gray-300' }}">
+                                </div>
+                                {% if series_post.id == post.id %}
+                                <span class="text-sm font-bold text-ink-dark block leading-snug">
+                                    {{ series_post.title }}
+                                </span>
+                                {% else %}
+                                <a href="{{ url_for('post', slug=series_post.slug) }}"
+                                    class="text-sm text-gray-500 hover:text-ink-main transition-colors block leading-snug">
+                                    {{ series_post.title }}
+                                </a>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <!-- Social Share -->
+                    <div class="flex flex-col gap-4">
+                        <button class="flex items-center gap-3 text-gray-500 hover:text-[#1DA1F2] transition-colors">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
+                            </svg>
+                            <span class="text-sm font-medium">Share on Twitter</span>
+                        </button>
+                        <!-- More share buttons... -->
+                    </div>
+                </div>
+            </aside>
+
+            <!-- MAIN CONTENT COLUMN -->
+            <div class="col-span-1 lg:col-span-8 lg:col-start-4">
+                <!-- Mobile Series View (Top) -->
+                {% if post.series %}
+                <div class="lg:hidden mb-8 bg-gray-50 p-4 rounded-sm border-l-4 border-ink-main">
+                    <div class="text-xs font-bold text-ink-brick uppercase tracking-widest mb-2">Series</div>
+                    <div class="font-bold text-gray-900">{{ post.series.title }}</div>
+                    <div class="text-sm text-gray-600 mt-1">
+                        Reading: {{ post.title }}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="prose prose-lg prose-ink max-w-none font-serif text-gray-800 leading-loose">
+
+                    <!-- Main Text Content -->
+                    {% if post.text_content %}
+                    {{ post.text_content | safe }}
+                    {% endif %}
+
+                    <!-- YouTube Embed -->
+                    {% if post.youtube_url and not post.use_youtube_poster %}
+                    <figure class="my-10">
+                        <div class="aspect-w-16 aspect-h-9 w-full bg-black rounded-sm overflow-hidden shadow-lg"
+                            style="position: relative; padding-bottom: 56.25%; height: 0;">
+                            <iframe src="{{ post.youtube_embed_url or post.youtube_url }}" title="YouTube video"
+                                class="w-full h-full absolute top-0 left-0" frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen></iframe>
+                        </div>
+                    </figure>
+                    {% endif %}
+
+                    <!-- Gallery Support -->
+                    {% if post.pictures %}
+                    <div class="my-12">
+                        {% if post.gallery_template == 'waterfall' %}
+                        <!-- Waterfall Gallery -->
+                        <div class="columns-1 md:columns-2 gap-4 space-y-4" id="waterfall-gallery">
+                            {% for picture in post.pictures %}
+                            <div class="break-inside-avoid relative group overflow-hidden rounded-sm cursor-pointer gallery-image"
+                                data-image-url="{{ url_for('static', filename='uploads/' + picture.filename) }}"
+                                onclick="openImageZoom('{{ url_for('static', filename='uploads/' + picture.filename) }}', {{ loop.index0 }}, 'waterfall')">
+                                <img src="{{ url_for('static', filename='uploads/' + picture.filename) }}"
+                                    alt="Gallery image"
+                                    class="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105" />
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center text-xs text-gray-400 mt-2 uppercase tracking-wide">
+                            Visual Essay
+                        </div>
+                        {% else %}
+                        <!-- Standard Slideshow / Grid -->
+                        <div class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-4 px-4 md:-mx-0 md:px-0"
+                            id="slideshow-gallery">
+                            {% for picture in post.pictures %}
+                            <div class="snap-center flex-shrink-0 w-[85vw] md:w-[600px] flex flex-col cursor-pointer gallery-image"
+                                data-image-url="{{ url_for('static', filename='uploads/' + picture.filename) }}"
+                                onclick="openImageZoom('{{ url_for('static', filename='uploads/' + picture.filename) }}', {{ loop.index0 }}, 'slideshow')">
+                                <img src="{{ url_for('static', filename='uploads/' + picture.filename) }}"
+                                    alt="Gallery image" class="w-full h-[400px] object-cover rounded-sm shadow-md" />
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                </div>
+
+                <!-- Post-Article Footer -->
+                <div class="mt-16 pt-8 border-t border-gray-200">
+
+                </div>
+            </div>
+
+        </div>
+    </article>
+</div>
+
+<!-- Image Zoom Modal -->
+<div id="image-zoom-modal" class="fixed inset-0 bg-black/95 z-50 hidden items-center justify-center"
+    onclick="closeImageZoom()">
+    <button class="absolute top-4 right-4 text-white text-4xl hover:text-gray-300 z-50"
+        onclick="closeImageZoom()">&times;</button>
+    <button class="absolute left-4 top-1/2 transform -translate-y-1/2 text-white text-4xl hover:text-gray-300 z-50"
+        onclick="previousImage(event)" id="prev-btn">&#8249;</button>
+    <button class="absolute right-4 top-1/2 transform -translate-y-1/2 text-white text-4xl hover:text-gray-300 z-50"
+        onclick="nextImage(event)" id="next-btn">&#8250;</button>
+    <img id="zoomed-image" src="" alt="Zoomed image" class="max-w-[90vw] max-h-[90vh] object-contain"
+        onclick="event.stopPropagation()">
+    <div class="absolute bottom-4 text-white text-sm" id="image-counter"></div>
+</div>
+
+<script>
+    let currentImageIndex = 0;
+    let allImages = [];
+    let galleryType = '';
+
+    function openImageZoom(imageUrl, index, type) {
+        const modal = document.getElementById('image-zoom-modal');
+        const zoomedImage = document.getElementById('zoomed-image');
+        const counter = document.getElementById('image-counter');
+
+        // Get all images from the respective gallery
+        galleryType = type;
+        const galleryContainer = type === 'waterfall' ?
+            document.getElementById('waterfall-gallery') :
+            document.getElementById('slideshow-gallery');
+
+        allImages = Array.from(galleryContainer.querySelectorAll('.gallery-image')).map(el => el.dataset.imageUrl);
+        currentImageIndex = index;
+
+        // Set image and show modal
+        zoomedImage.src = imageUrl;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+
+        // Update counter
+        counter.textContent = `${currentImageIndex + 1} / ${allImages.length}`;
+
+        // Show/hide navigation buttons based on number of images
+        document.getElementById('prev-btn').style.display = allImages.length > 1 ? 'block' : 'none';
+        document.getElementById('next-btn').style.display = allImages.length > 1 ? 'block' : 'none';
+    }
+
+    function closeImageZoom() {
+        const modal = document.getElementById('image-zoom-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.style.overflow = 'auto';
+    }
+
+    function nextImage(event) {
+        event.stopPropagation();
+        currentImageIndex = (currentImageIndex + 1) % allImages.length;
+        document.getElementById('zoomed-image').src = allImages[currentImageIndex];
+        document.getElementById('image-counter').textContent = `${currentImageIndex + 1} / ${allImages.length}`;
+    }
+
+    function previousImage(event) {
+        event.stopPropagation();
+        currentImageIndex = (currentImageIndex - 1 + allImages.length) % allImages.length;
+        document.getElementById('zoomed-image').src = allImages[currentImageIndex];
+        document.getElementById('image-counter').textContent = `${currentImageIndex + 1} / ${allImages.length}`;
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', function (e) {
+        const modal = document.getElementById('image-zoom-modal');
+        if (!modal.classList.contains('hidden')) {
+            if (e.key === 'Escape') {
+                closeImageZoom();
+            } else if (e.key === 'ArrowRight') {
+                nextImage(e);
+            } else if (e.key === 'ArrowLeft') {
+                previousImage(e);
+            }
+        }
+    });
+</script>
+
+{% endblock %}

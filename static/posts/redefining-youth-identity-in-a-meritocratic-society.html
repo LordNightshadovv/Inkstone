@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Inkstone - Authentic Creative Voices of Chinese Students Worldwide">
+    <title>Redefining Youth Identity in a Meritocratic Society - Inkstone</title>
+
+    <!-- Tailwind CSS & Config from Redesign -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ink: {
+                            dark: '#134e4a', // Dark Jade
+                            main: '#0d9488', // Main Jade
+                            light: '#5eead4', // Light Jade
+                            mint: '#ccfbf1', // Mint
+                            brick: '#b91c1c', // Brick Red
+                            cream: '#fdfbf7', // Background cream
+                        },
+                        // Aliases for compatibility with other templates
+                        paper: {
+                            DEFAULT: '#fdfbf7',
+                            light: '#ffffff'
+                        },
+                        accent: {
+                            green: {
+                                DEFAULT: '#0d9488',
+                                dark: '#134e4a'
+                            },
+                            mint: '#ccfbf1',
+                            red: '#b91c1c'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['Merriweather', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --ink-dark: #134e4a;
+            --ink-main: #0d9488;
+            --ink-light: #5eead4;
+            --ink-mint: #ccfbf1;
+            --ink-brick: #b91c1c;
+            --ink-cream: #fdfbf7;
+
+            /* Aliases */
+            --ink-deep: var(--ink-dark);
+            --ink-mid: #4b5563;
+            /* Gray-600 */
+            --accent-green: var(--ink-main);
+            --accent-green-dark: var(--ink-dark);
+            --accent-mint: var(--ink-mint);
+            --accent-red: var(--ink-brick);
+            --paper: var(--ink-cream);
+            --paper-light: #ffffff;
+        }
+
+        body {
+            background-color: var(--ink-cream);
+            color: #1f2937;
+        }
+
+        /* Ensure Lucide icons align properly */
+        .lucide {
+            display: inline-block;
+            vertical-align: middle;
+        }
+    </style>
+
+    <!-- Meta tags for social sharing -->
+    <meta property="og:title" content="Inkstone - Authentic Creative Voices">
+    <meta property="og:description" content="Showcasing the vibrant stories of Chinese students worldwide">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Swiper CSS (keep if needed for slideshows) -->
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+    <!-- Lucide Icons (CDN since we removed npm) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white border-b-4 border-ink-main shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16 md:h-20">
+
+                <!-- Mobile Menu Button -->
+                <div class="flex items-center md:hidden">
+                    <button id="mobile-menu-btn" class="text-ink-dark hover:text-ink-main p-2">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center justify-center md:justify-start flex-1 md:flex-none">
+                    <a href="/"
+                        class="font-serif font-black text-3xl md:text-4xl tracking-tighter text-ink-dark cursor-pointer decoration-0">
+                        inkstone<span class="text-ink-brick">.</span>
+                    </a>
+                </div>
+
+                <!-- Desktop Nav -->
+                <nav class="hidden md:flex space-x-8">
+                    <a href="/"
+                        class="font-sans font-bold text-sm uppercase tracking-wide text-gray-700 hover:text-ink-main transition-colors">Home</a>
+                    <a href="/stories"
+                        class="font-sans font-bold text-sm uppercase tracking-wide text-gray-700 hover:text-ink-main transition-colors">Stories</a>
+                    <a href="/explore-themes"
+                        class="font-sans font-bold text-sm uppercase tracking-wide text-gray-700 hover:text-ink-main transition-colors">Explore
+                        Themes</a>
+                    <a href="/about"
+                        class="font-sans font-bold text-sm uppercase tracking-wide text-gray-700 hover:text-ink-main transition-colors">About</a>
+                </nav>
+
+                <!-- Actions -->
+                <div class="flex items-center space-x-2 md:space-x-4">
+                    <button id="nav-search-btn"
+                        class="p-2 text-ink-dark hover:bg-ink-mint rounded-full transition-colors flex items-center gap-2 group">
+                        <i data-lucide="search" class="w-5 h-5"></i>
+                    </button>
+                    <!-- User Icon Removed -->
+                    <button id="nav-subscribe-btn"
+                        class="hidden md:block px-4 py-2 bg-ink-dark text-white text-xs font-bold uppercase tracking-wider hover:bg-ink-main transition-colors rounded-sm shadow-sm">
+                        Subscribe
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu"
+            class="hidden md:hidden bg-ink-cream border-t border-gray-100 absolute w-full left-0 top-full">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="/"
+                    class="block px-3 py-2 rounded-md text-base font-bold text-ink-dark hover:bg-ink-mint hover:text-ink-main">Home</a>
+                <a href="/stories"
+                    class="block px-3 py-2 rounded-md text-base font-bold text-ink-dark hover:bg-ink-mint hover:text-ink-main">Stories</a>
+                <a href="/explore-themes"
+                    class="block px-3 py-2 rounded-md text-base font-bold text-ink-dark hover:bg-ink-mint hover:text-ink-main">Explore
+                    Themes</a>
+                <a href="/about"
+                    class="block px-3 py-2 rounded-md text-base font-bold text-ink-dark hover:bg-ink-mint hover:text-ink-main">About</a>
+                <div class="pt-4 pb-2 border-t border-gray-200 mt-2">
+                    <button class="w-full text-left px-3 py-2 text-ink-brick font-bold uppercase text-sm">
+                        Subscribe Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Flash Messages -->
+    
+    
+    
+
+    <!-- Main Content -->
+    
+<!-- Article Page Container -->
+<div class="min-h-screen bg-ink-cream animate-fadeIn pb-16">
+    <!-- Top Navigation (duplicate of base/index for consistency if needed, strictly speaking base.html handles this but we want specific Redesign styles if base isn't updated fully) -->
+    <!-- Assuming base.html content block wrapper, so we just put article content here -->
+
+    <article>
+        <!-- 1. HEADER SECTION -->
+        <div class="max-w-4xl mx-auto px-4 pt-8 md:pt-12 mb-8 md:mb-12">
+            <div class="flex items-center gap-2 mb-6">
+                <a href="/" class="text-gray-400 hover:text-ink-dark transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-arrow-left">
+                        <path d="m12 19-7-7 7-7" />
+                        <path d="M19 12H5" />
+                    </svg>
+                </a>
+                <span
+                    class="text-xs font-bold tracking-widest uppercase text-ink-brick px-2 py-1 bg-ink-brick/10 rounded-sm">
+                    BJ80 Events
+                </span>
+            </div>
+
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-serif font-black text-ink-dark leading-tight mb-6">
+                Redefining Youth Identity in a Meritocratic Society
+            </h1>
+
+            
+            <p class="text-xl md:text-2xl text-gray-500 font-serif italic mb-8 leading-relaxed">
+                What if fairness wasn’t just an idea, but a daily decision we all have to make?Arlene will not stop challenging us to rethink social equity and imagine how small actions can build a more just future.
+Abstract adopted from TEDX Youtube.
+            </p>
+            
+
+            <div class="flex items-center justify-between border-y border-gray-200 py-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gray-200 rounded-full overflow-hidden">
+                        <img src="https://ui-avatars.com/api/?name=Arlene Wang&background=0d9488&color=fff"
+                            alt="Arlene Wang" />
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold text-gray-900">Arlene Wang</div>
+                        
+                        <div class="text-xs text-gray-500 font-medium">
+                            Edited by Vold | Vold 2
+                             • 
+                            Translated by ChatGPT
+                        </div>
+                        
+                        <div class="text-xs text-gray-400 mt-0.5">October 28, 2025 • 8
+                            min read</div>
+                    </div>
+                </div>
+                <div class="flex gap-4 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-share-2 hover:text-ink-main cursor-pointer">
+                        <circle cx="18" cy="5" r="3" />
+                        <circle cx="6" cy="12" r="3" />
+                        <circle cx="18" cy="19" r="3" />
+                        <line x1="8.59" x2="15.42" y1="13.51" y2="17.49" />
+                        <line x1="15.41" x2="8.59" y1="6.51" y2="10.49" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. HERO IMAGE -->
+        <div class="w-full mb-12">
+            
+            <div class="w-full h-[50vh] md:h-[70vh] bg-black">
+                <iframe src="https://www.youtube.com/embed/8O4s3KcLwEg" title="Redefining Youth Identity in a Meritocratic Society" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen class="w-full h-full"></iframe>
+            </div>
+            
+            <div class="max-w-4xl mx-auto mt-2 text-sm text-gray-400 italic text-right px-4">
+                Image credit: Inkstone Archive
+            </div>
+        </div>
+
+        <!-- 3. CONTENT LAYOUT (Sidebar + Main) -->
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 px-4">
+
+            <!-- LEFT SIDEBAR (Share & Series) -->
+            <aside class="hidden lg:block lg:col-span-3">
+                <div class="sticky top-24 space-y-8">
+                    <!-- Series Component -->
+                    
+                    <div class="bg-white border border-gray-100 rounded-sm p-6 shadow-sm">
+                        <div class="text-xs font-bold text-ink-brick uppercase tracking-widest mb-4">
+                            In This Series
+                        </div>
+                        <h4 class="font-serif font-bold text-lg mb-4 leading-tight">
+                            BJ80 TEDX 2024
+                        </h4>
+                        <ul class="space-y-3 relative">
+                            <div class="absolute left-1.5 top-2 bottom-2 w-px bg-gray-200"></div>
+                            
+                            <li class="relative pl-6">
+                                <div
+                                    class="absolute left-0 top-1.5 w-3 h-3 rounded-full border-2 bg-white border-gray-300">
+                                </div>
+                                
+                                <a href="/choosing-your-own-path"
+                                    class="text-sm text-gray-500 hover:text-ink-main transition-colors block leading-snug">
+                                    Choosing Your Own Path
+                                </a>
+                                
+                            </li>
+                            
+                            <li class="relative pl-6">
+                                <div
+                                    class="absolute left-0 top-1.5 w-3 h-3 rounded-full border-2 bg-ink-main border-ink-main">
+                                </div>
+                                
+                                <span class="text-sm font-bold text-ink-dark block leading-snug">
+                                    Redefining Youth Identity in a Meritocratic Society
+                                </span>
+                                
+                            </li>
+                            
+                            <li class="relative pl-6">
+                                <div
+                                    class="absolute left-0 top-1.5 w-3 h-3 rounded-full border-2 bg-white border-gray-300">
+                                </div>
+                                
+                                <a href="/beyond-the-filter-performance-script-hey"
+                                    class="text-sm text-gray-500 hover:text-ink-main transition-colors block leading-snug">
+                                    Beyond the Filter Performance Script
+                                </a>
+                                
+                            </li>
+                            
+                        </ul>
+                    </div>
+                    
+
+                    <!-- Social Share -->
+                    <div class="flex flex-col gap-4">
+                        <button class="flex items-center gap-3 text-gray-500 hover:text-[#1DA1F2] transition-colors">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
+                            </svg>
+                            <span class="text-sm font-medium">Share on Twitter</span>
+                        </button>
+                        <!-- More share buttons... -->
+                    </div>
+                </div>
+            </aside>
+
+            <!-- MAIN CONTENT COLUMN -->
+            <div class="col-span-1 lg:col-span-8 lg:col-start-4">
+                <!-- Mobile Series View (Top) -->
+                
+                <div class="lg:hidden mb-8 bg-gray-50 p-4 rounded-sm border-l-4 border-ink-main">
+                    <div class="text-xs font-bold text-ink-brick uppercase tracking-widest mb-2">Series</div>
+                    <div class="font-bold text-gray-900">BJ80 TEDX 2024</div>
+                    <div class="text-sm text-gray-600 mt-1">
+                        Reading: Redefining Youth Identity in a Meritocratic Society
+                    </div>
+                </div>
+                
+
+                <div class="prose prose-lg prose-ink max-w-none font-serif text-gray-800 leading-loose">
+
+                    <!-- Main Text Content -->
+                    
+                    <p><strong>Empowering Voices: Redefining Youth Identity in a Meritocratic Society</strong></p><p><br></p><p><strong>Introduction: The 98% That Wasn’t Enough</strong></p><p>When I was 14, I stayed up every night trying to be "the perfect student." I believed that if I got top grades, everyone would see me as valuable. One day, I got a 98 on a test. My teacher smiled and said, "Good job! But what happened to the other 2 points?" I laughed. But inside, something shifted. I began to wonder—am I more than my grades?</p><p>That moment made me question something deeper: Are we being measured by who we are, or by how well we perform?</p><p>We live in what’s called a <em>meritocracy</em>. That’s a system where people are judged by their achievements. It sounds fair—like everyone running in a race, and the fastest wins. But what if some people have better shoes, or others are carrying heavy backpacks? The race isn’t as equal as it seems. And in this race, our self-worth often gets tied to our results.</p><p>Today, I want to challenge the label of the "lost generation" by asking: Are we truly lost, or are we just tired of running a race we never chose?</p><p><br></p><p><strong>Part 1: The Mask We Wear — Jung’s Persona and Foucault’s Panopticon</strong></p><p>Psychologist Carl Jung said we all wear a <em>Persona</em>&nbsp;— a social mask we put on to fit in. In a meritocratic society, that mask might look like "straight-A student," "Ivy League admit," or "perfect Instagram life."</p><p>But French philosopher Michel Foucault introduced another idea: <em>disciplinary power</em>. It’s not just about rules or punishments. It’s about how systems shape our behavior. Every time we’re ranked by test scores, judged by likes on a post, or told to sit still in a classroom, we are being trained to monitor ourselves. Foucault compared this to a <em>Panopticon</em>&nbsp;— a prison where the prisoner never knows if they're being watched. Eventually, they start watching themselves.</p><p>Sound familiar? Social media is our modern Panopticon. We post, edit, refresh. We’re both the prisoner and the guard, performing for an invisible audience.</p><p>Jung adds another layer: Beneath the mask is the <em>Shadow</em>&nbsp;— the parts of us we hide. Failure. Fear. Even our weirdest, wildest dreams.</p><p>But the mask isn’t evil. It helps us survive. The danger is when we forget we’re wearing it. When we say, "I <em>am</em>&nbsp;my GPA," or "I <em>am</em>&nbsp;my follower count," we shrink ourselves into something less than human.</p><p>In South Korea, some students call themselves "exam zombies" — alive only to study. In Finland, teens embrace <em>sisu</em>, a way of living that values inner strength more than perfect scores. No matter where we live, the pressure is real. But so is the desire to tear off the mask.</p><p><br></p><p><strong>Part 2: Embracing the Shadow — Finding Our Real Selves</strong></p><p>Jung said growth isn’t about destroying the Shadow. It’s about accepting it. The perfect student who writes poems in secret. The athlete who loves coding but hides it from their team. These aren’t contradictions. They’re clues.</p><p>French philosopher Jean-Paul Sartre believed that we aren’t born with a fixed identity. We become who we are through our choices. But he warned about <em>bad faith</em>&nbsp;— when we live by other people’s expectations instead of our own.</p><p>Meritocracy pushes us toward bad faith. It says:</p><p>·&nbsp;"You’re only as good as your GPA."</p><p>·&nbsp;"You must choose a career that sounds impressive."</p><p>·&nbsp;"Don’t take risks. What if you fail?"</p><p>But what if we say something different?</p><p>·&nbsp;"I didn’t get a perfect GPA, but I made time for things that gave me joy."</p><p>·&nbsp;"I don’t care if my job looks fancy. I care if it feels meaningful."</p><p>·&nbsp;"I’m not 'just a teenager.' I’m someone who is still becoming."</p><p>The real rebellion isn’t loud. It’s quiet. It’s choosing to live as your whole self.</p><p><br></p><p><strong>Part 3: Individuation — Becoming Citizens of Ourselves</strong></p><p>Jung called the journey of becoming our true selves <em>individuation</em>. It means becoming whole — not perfect, but real. And that’s powerful.</p><p>Because when we accept our masks and our shadows, we stop competing and start connecting.</p><p>Foucault showed us how systems divide us through rankings, grades, likes. But when we embrace who we really are, we find something deeper than competition: <em>shared humanity</em>.</p><p>Think about it:</p><p>·&nbsp;A teen in Tokyo who loves both K-pop and traditional tea ceremonies.</p><p>·&nbsp;A refugee in Germany coding apps to preserve their native language.</p><p>·&nbsp;You, me, all of us — refusing to let a number, a test, or a title define who we are.</p><p>The more we understand ourselves, the more we can understand each other.</p><p><br></p><p><strong>Conclusion: From Lost to Found</strong></p><p>They call us the "lost generation."</p><p>We say: We’re not lost. We’re searching.</p><p>Every time we question the mask, every time we embrace the Shadow, we find something real.</p><p>Let’s stop asking, "What will you achieve?" and start asking, "Who are you becoming?"</p><p>Let’s trade the exhaustion of perfection for the adventure of authenticity.</p><p>Because the world doesn’t need more successful robots. It needs more <em>humans</em>&nbsp;— messy, curious, and gloriously unfinished.</p><p>That’s us.</p>
+                    
+
+                    <!-- YouTube Embed -->
+                    
+
+                    <!-- Gallery Support -->
+                    
+
+                </div>
+
+                <!-- Post-Article Footer -->
+                <div class="mt-16 pt-8 border-t border-gray-200">
+
+                </div>
+            </div>
+
+        </div>
+    </article>
+</div>
+
+<!-- Image Zoom Modal -->
+<div id="image-zoom-modal" class="fixed inset-0 bg-black/95 z-50 hidden items-center justify-center"
+    onclick="closeImageZoom()">
+    <button class="absolute top-4 right-4 text-white text-4xl hover:text-gray-300 z-50"
+        onclick="closeImageZoom()">&times;</button>
+    <button class="absolute left-4 top-1/2 transform -translate-y-1/2 text-white text-4xl hover:text-gray-300 z-50"
+        onclick="previousImage(event)" id="prev-btn">&#8249;</button>
+    <button class="absolute right-4 top-1/2 transform -translate-y-1/2 text-white text-4xl hover:text-gray-300 z-50"
+        onclick="nextImage(event)" id="next-btn">&#8250;</button>
+    <img id="zoomed-image" src="" alt="Zoomed image" class="max-w-[90vw] max-h-[90vh] object-contain"
+        onclick="event.stopPropagation()">
+    <div class="absolute bottom-4 text-white text-sm" id="image-counter"></div>
+</div>
+
+<script>
+    let currentImageIndex = 0;
+    let allImages = [];
+    let galleryType = '';
+
+    function openImageZoom(imageUrl, index, type) {
+        const modal = document.getElementById('image-zoom-modal');
+        const zoomedImage = document.getElementById('zoomed-image');
+        const counter = document.getElementById('image-counter');
+
+        // Get all images from the respective gallery
+        galleryType = type;
+        const galleryContainer = type === 'waterfall' ?
+            document.getElementById('waterfall-gallery') :
+            document.getElementById('slideshow-gallery');
+
+        allImages = Array.from(galleryContainer.querySelectorAll('.gallery-image')).map(el => el.dataset.imageUrl);
+        currentImageIndex = index;
+
+        // Set image and show modal
+        zoomedImage.src = imageUrl;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+
+        // Update counter
+        counter.textContent = `${currentImageIndex + 1} / ${allImages.length}`;
+
+        // Show/hide navigation buttons based on number of images
+        document.getElementById('prev-btn').style.display = allImages.length > 1 ? 'block' : 'none';
+        document.getElementById('next-btn').style.display = allImages.length > 1 ? 'block' : 'none';
+    }
+
+    function closeImageZoom() {
+        const modal = document.getElementById('image-zoom-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.style.overflow = 'auto';
+    }
+
+    function nextImage(event) {
+        event.stopPropagation();
+        currentImageIndex = (currentImageIndex + 1) % allImages.length;
+        document.getElementById('zoomed-image').src = allImages[currentImageIndex];
+        document.getElementById('image-counter').textContent = `${currentImageIndex + 1} / ${allImages.length}`;
+    }
+
+    function previousImage(event) {
+        event.stopPropagation();
+        currentImageIndex = (currentImageIndex - 1 + allImages.length) % allImages.length;
+        document.getElementById('zoomed-image').src = allImages[currentImageIndex];
+        document.getElementById('image-counter').textContent = `${currentImageIndex + 1} / ${allImages.length}`;
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', function (e) {
+        const modal = document.getElementById('image-zoom-modal');
+        if (!modal.classList.contains('hidden')) {
+            if (e.key === 'Escape') {
+                closeImageZoom();
+            } else if (e.key === 'ArrowRight') {
+                nextImage(e);
+            } else if (e.key === 'ArrowLeft') {
+                previousImage(e);
+            }
+        }
+    });
+</script>
+
+
+
+    <!-- Footer -->
+    <footer class="bg-ink-dark text-white pt-16 pb-8 border-t-8 border-ink-brick mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+
+                <!-- Brand -->
+                <div class="col-span-1 md:col-span-1">
+                    <div class="font-serif font-black text-3xl tracking-tighter text-white mb-6">
+                        inkstone<span class="text-ink-brick">.</span>
+                    </div>
+                    <p class="text-ink-light text-sm leading-relaxed mb-6">
+                        Authentic creative voices of Chinese students worldwide.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-white hover:text-ink-light transition-colors"><i data-lucide="twitter"
+                                class="w-5 h-5"></i></a>
+                        <a href="#" class="text-white hover:text-ink-light transition-colors"><i data-lucide="facebook"
+                                class="w-5 h-5"></i></a>
+                        <a href="#" class="text-white hover:text-ink-light transition-colors"><i data-lucide="instagram"
+                                class="w-5 h-5"></i></a>
+                    </div>
+                </div>
+
+                <!-- Explore -->
+                <div class="col-span-1">
+                    <h4 class="font-bold uppercase tracking-wider text-ink-mint text-sm mb-6">Explore</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="/" class="hover:text-ink-light transition-colors">Home</a>
+                        </li>
+                        <li><a href="/stories"
+                                class="hover:text-ink-light transition-colors">Stories</a></li>
+                        <li><a href="/explore-themes"
+                                class="hover:text-ink-light transition-colors">Explore Themes</a></li>
+                        <li><a href="/about" class="hover:text-ink-light transition-colors">About</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Themes -->
+                <div class="col-span-1">
+                    <h4 class="font-bold uppercase tracking-wider text-ink-mint text-sm mb-6">Themes</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="/explore-themes" class="hover:text-ink-light transition-colors">All
+                                Themes</a></li>
+                        
+                        <li><a href="/theme/bj80-events"
+                                class="hover:text-ink-light transition-colors">BJ80 Events</a></li>
+                        
+                        <li><a href="/theme/chinese-culture"
+                                class="hover:text-ink-light transition-colors">Chinese Culture</a></li>
+                        
+                        <li><a href="/theme/essays-and-prose"
+                                class="hover:text-ink-light transition-colors">Essays &amp; Prose</a></li>
+                        
+                        <li><a href="/theme/general-arts"
+                                class="hover:text-ink-light transition-colors">General Arts</a></li>
+                        
+                    </ul>
+                </div>
+
+                <!-- Newsletter -->
+                <div class="col-span-1 md:col-span-1">
+                    <h4 class="font-bold uppercase tracking-wider text-ink-mint text-sm mb-6">Stay Connected</h4>
+                    <p class="text-sm text-gray-300 mb-4">Get the latest stories in your inbox.</p>
+                    <form class="flex flex-col space-y-2" onsubmit="event.preventDefault(); alert('Subscribed!');">
+                        <input type="email" placeholder="Your email address"
+                            class="bg-white/10 border border-white/20 text-white placeholder-gray-400 px-4 py-2 rounded-sm focus:outline-none focus:border-ink-light text-sm" />
+                        <button
+                            class="bg-ink-brick hover:bg-red-600 text-white font-bold py-2 px-4 rounded-sm transition-colors text-sm uppercase tracking-wide">
+                            Subscribe
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+
+            <!-- Bottom Bar -->
+            <div
+                class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
+                <p>&copy; 2026 Inkstone Magazine. All rights reserved.</p>
+                <div class="flex gap-4 mt-4 md:mt-0">
+                    <span>Designed with Gemini</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Search Overlay -->
+    <div id="search-overlay"
+        class="fixed inset-0 bg-ink-dark/95 z-50 hidden flex items-center justify-center animate-fadeIn">
+        <button id="close-search" class="absolute top-8 right-8 text-white hover:text-ink-light">
+            <i data-lucide="x" class="w-10 h-10"></i>
+        </button>
+        <div class="w-full max-w-4xl px-4">
+            <form action="/search" method="get" class="relative">
+                <input type="text" name="q" placeholder="Type to search stories..."
+                    class="w-full bg-transparent border-b-2 border-white/20 text-3xl md:text-6xl font-serif font-bold text-white placeholder-white/20 py-6 focus:outline-none focus:border-ink-light transition-colors"
+                    autocomplete="off">
+                <button type="submit"
+                    class="absolute right-0 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors">
+                    <i data-lucide="arrow-right" class="w-12 h-12"></i>
+                </button>
+            </form>
+            <p class="text-ink-light/50 mt-4 text-sm font-sans uppercase tracking-widest">Press Enter to Search</p>
+        </div>
+    </div>
+
+    <!-- Subscribe Modal -->
+    <div id="subscribe-modal"
+        class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center backdrop-blur-sm p-4 animate-fadeIn">
+        <div class="bg-white p-8 md:p-12 rounded-sm max-w-lg w-full relative shadow-2xl border-t-4 border-ink-main">
+            <button id="close-subscribe"
+                class="absolute top-4 right-4 text-gray-400 hover:text-ink-brick transition-colors">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            <h3 class="text-3xl font-serif font-black text-ink-dark mb-3">Join Inkstone.</h3>
+            <p class="text-gray-600 mb-8 leading-relaxed">Get the latest authentic stories, cultural insights, and
+                creative voices delivered straight to your inbox.</p>
+            <form id="subscribe-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Email
+                        Address</label>
+                    <input type="email" name="email" required placeholder="you@example.com"
+                        class="w-full bg-gray-50 border border-gray-200 px-4 py-3 rounded-sm focus:outline-none focus:border-ink-main focus:bg-white transition-colors">
+                </div>
+                <button type="submit"
+                    class="w-full bg-ink-dark text-white font-bold py-4 uppercase tracking-widest hover:bg-ink-main transition-colors shadow-lg">
+                    Subscribe
+                </button>
+                <p id="subscribe-message" class="text-sm text-center font-medium hidden mt-4"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Init Icons and Scripts -->
+    <script>
+        // Initialize Lucide Icons
+        document.addEventListener('DOMContentLoaded', function () {
+            lucide.createIcons();
+        });
+
+        // Mobile Menu Logic
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            const icon = mobileMenu.classList.contains('hidden') ? 'menu' : 'x';
+            // Simple re-render for icon switch would require clearing and re-adding svg, 
+            // but for simplicity we keep it as menu or toggle visibility of two icons if needed.
+            // For now, let's just toggle the menu visibility.
+        });
+
+        // Search Overlay Logic
+        const searchBtn = document.getElementById('nav-search-btn');
+        const searchOverlay = document.getElementById('search-overlay');
+        const closeSearch = document.getElementById('close-search');
+        const searchInput = searchOverlay.querySelector('input');
+
+        function toggleSearch() {
+            searchOverlay.classList.toggle('hidden');
+            if (!searchOverlay.classList.contains('hidden')) {
+                setTimeout(() => searchInput.focus(), 100);
+            }
+        }
+
+        searchBtn.addEventListener('click', toggleSearch);
+        closeSearch.addEventListener('click', toggleSearch);
+
+        // Close on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (!searchOverlay.classList.contains('hidden')) toggleSearch();
+                if (!subscribeModal.classList.contains('hidden')) toggleSubscribe();
+            }
+        });
+
+        // Subscribe Modal Logic
+        const subscribeBtn = document.getElementById('nav-subscribe-btn');
+        const subscribeModal = document.getElementById('subscribe-modal');
+        const closeSubscribe = document.getElementById('close-subscribe');
+        const subscribeForm = document.getElementById('subscribe-form');
+        const subscribeMessage = document.getElementById('subscribe-message');
+
+        function toggleSubscribe() {
+            subscribeModal.classList.toggle('hidden');
+            subscribeMessage.classList.add('hidden');
+            subscribeMessage.textContent = '';
+        }
+
+        if (subscribeBtn) subscribeBtn.addEventListener('click', toggleSubscribe);
+        if (closeSubscribe) closeSubscribe.addEventListener('click', toggleSubscribe);
+
+        // Subscribe Form Submission
+        subscribeForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const email = this.email.value;
+            const btn = this.querySelector('button');
+            const originalText = btn.textContent;
+
+            btn.disabled = true;
+            btn.textContent = 'Subscribing...';
+
+            fetch('/subscribe', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: email })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    subscribeMessage.classList.remove('hidden');
+                    if (data.success) {
+                        subscribeMessage.className = 'text-sm text-center font-medium mt-4 text-green-600';
+                        subscribeMessage.textContent = data.message;
+                        setTimeout(() => {
+                            toggleSubscribe();
+                            this.reset();
+                        }, 2000);
+                    } else {
+                        subscribeMessage.className = 'text-sm text-center font-medium mt-4 text-red-600';
+                        subscribeMessage.textContent = data.error || 'An error occurred';
+                    }
+                })
+                .catch(error => {
+                    subscribeMessage.classList.remove('hidden');
+                    subscribeMessage.className = 'text-sm text-center font-medium mt-4 text-red-600';
+                    subscribeMessage.textContent = 'Network error. Please try again.';
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                });
+        });
+    </script>
+</body>
+
+</html>

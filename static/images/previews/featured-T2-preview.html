@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T2 Template Preview - Editorial Split-Screen</title>
+    <style>
+        :root {
+            --primary-color: #2c5aa0;
+            --secondary-color: #1a365d;
+            --accent-color: #4a90e2;
+            --light-text-color: #ffffff;
+            --dark-text-color: #2d3748;
+            --background-color: #f7fafc;
+            --text-muted: #718096;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--background-color);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .preview-container {
+            width: 100%;
+            max-width: 900px;
+            height: 500px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            background: white;
+        }
+        
+        .editorial-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            height: 100%;
+        }
+        
+        .text-column {
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        }
+        
+        .text-column h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--dark-text-color);
+            margin-bottom: 1.5rem;
+            line-height: 1.3;
+        }
+        
+        .text-column p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+            margin-bottom: 1rem;
+        }
+        
+        .author-info {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid var(--accent-color);
+        }
+        
+        .author-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .image-column {
+            position: relative;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            background-image: 
+                radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .image-placeholder {
+            width: 80%;
+            height: 80%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+        }
+        
+        .image-icon {
+            width: 48px;
+            height: 48px;
+            opacity: 0.6;
+        }
+        
+        .image-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: var(--light-text-color);
+        }
+        
+        @media (max-width: 768px) {
+            .preview-container {
+                height: 600px;
+                margin: 1rem;
+            }
+            
+            .editorial-split {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+            }
+            
+            .text-column {
+                padding: 2rem;
+            }
+            
+            .text-column h1 {
+                font-size: 1.8rem;
+            }
+            
+            .text-column p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="preview-container">
+        <div class="editorial-split">
+            <div class="text-column">
+                <h1>Finding My Voice Through Art</h1>
+                <p>A glimpse into student art studios blending traditional ink painting with digital media techniques.</p>
+                <p>The collision of tradition and modernity in ancient alleys, where I discovered the artistic language of our time.</p>
+                <div class="author-info">
+                    <div class="author-name">Zhang Xiaoyu</div>
+                </div>
+            </div>
+            <div class="image-column">
+                <div class="image-placeholder">
+                    <div class="image-icon">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21,15 16,10 5,21"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

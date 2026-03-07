@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T1 Template Preview - Cinematic Video Teaser</title>
+    <style>
+        :root {
+            --primary-color: #2c5aa0;
+            --secondary-color: #1a365d;
+            --accent-color: #4a90e2;
+            --light-text-color: #ffffff;
+            --dark-text-color: #2d3748;
+            --background-color: #f7fafc;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--background-color);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .preview-container {
+            width: 100%;
+            max-width: 800px;
+            height: 500px;
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cinematic-hero {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .cinematic-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+        
+        .play-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 2;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .play-icon:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 1);
+        }
+        
+        .play-icon svg {
+            width: 32px;
+            height: 32px;
+            fill: var(--primary-color);
+            margin-left: 4px;
+        }
+        
+        .content {
+            position: relative;
+            z-index: 2;
+            max-width: 600px;
+        }
+        
+        .content h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--light-text-color);
+            margin-bottom: 1rem;
+            line-height: 1.2;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .content p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .preview-container {
+                height: 400px;
+                margin: 1rem;
+            }
+            
+            .content h1 {
+                font-size: 2rem;
+            }
+            
+            .content p {
+                font-size: 1rem;
+            }
+            
+            .play-icon {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .play-icon svg {
+                width: 24px;
+                height: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="preview-container">
+        <div class="cinematic-hero">
+            <div class="play-icon">
+                <svg viewBox="0 0 24 24">
+                    <polygon points="5,3 19,12 5,21"></polygon>
+                </svg>
+            </div>
+            <div class="content">
+                <h1>Beijing Through My Lens</h1>
+                <p>Short film by a Beijing high schooler about friendship and city life in modern China.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

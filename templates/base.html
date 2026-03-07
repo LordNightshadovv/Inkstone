@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Inkstone - Authentic Creative Voices of Chinese Students Worldwide">
+    <title>{% block title %}Inkstone - Authentic Creative Voices{% endblock %}</title>
+
+    <!-- Tailwind CSS & Config from Redesign -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ink: {
+                            dark: '#134e4a', // Dark Jade
+                            main: '#0d9488', // Main Jade
+                            light: '#5eead4', // Light Jade
+                            mint: '#ccfbf1', // Mint
+                            brick: '#b91c1c', // Brick Red
+                            cream: '#fdfbf7', // Background cream
+                        },
+                        // Aliases for compatibility with other templates
+                        paper: {
+                            DEFAULT: '#fdfbf7',
+                            light: '#ffffff'
+                        },
+                        accent: {
+                            green: {
+                                DEFAULT: '#0d9488',
+                                dark: '#134e4a'
+                            },
+                            mint: '#ccfbf1',
+                            red: '#b91c1c'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['Merriweather', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --ink-dark: #134e4a;
+            --ink-main: #0d9488;
+            --ink-light: #5eead4;
+            --ink-mint: #ccfbf1;
+            --ink-brick: #b91c1c;
+            --ink-cream: #fdfbf7;
+
+            /* Aliases */
+            --ink-deep: var(--ink-dark);
+            --ink-mid: #4b5563;
+            /* Gray-600 */
+            --accent-green: var(--ink-main);
+            --accent-green-dark: var(--ink-dark);
+            --accent-mint: var(--ink-mint);
+            --accent-red: var(--ink-brick);
+            --paper: var(--ink-cream);
+            --paper-light: #ffffff;
+        }
+
+        body {
+            background-color: var(--ink-cream);
+            color: #1f2937;
+        }
+
+        /* Ensure Lucide icons align properly */
+        .lucide {
+            display: inline-block;
+            vertical-align: middle;
+        }
+    </style>
+
+    <!-- Meta tags for social sharing -->
+    <meta property="og:title" content="Inkstone - Authentic Creative Voices">
+    <meta property="og:description" content="Showcasing the vibrant stories of Chinese students worldwide">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Swiper CSS (keep if needed for slideshows) -->
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+    <!-- Lucide Icons (CDN since we removed npm) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white border-b-4 border-ink-main shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16 md:h-20">
+
+                <!-- Mobile Menu Button -->
+                <div class="flex items-center md:hidden">
+                    <button id="mobile-menu-btn" class="text-ink-dark hover:text-ink-main p-2">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center justify-center md:justify-start flex-1 md:flex-none">
+                    <a href="{{ url_for('index') }}"
+                        class="font-serif font-black text-3xl md:text-4xl tracking-tighter text-ink-dark cursor-pointer decoration-0">
+                        inkstone<span class="text-ink-brick">.</span>
+                    </a>
+                </div>
+
+                <!-- Desktop Nav -->
+                <nav class="hidden md:flex space-x-8">
+                    <a href="{{ url_for('index') }}"
+                        class="font-sans font-bold text-sm uppercase tracking-wide text-gray-700 hover:text-ink-main transition-colors">Home</a>
+                    <a href="{{ url_for('stories') }}"
+                        class="font-sans font-bold text-sm uppercase tracking-wide text-gray-700 hover:text-ink-main transition-colors">Stories</a>
+                    <a href="{{ url_for('explore_themes') }}"
+                        class="font-sans font-bold text-sm uppercase tracking-wide text-gray-700 hover:text-ink-main transition-colors">Explore
+                        Themes</a>
+                    <a href="{{ url_for('about') }}"
+                        class="font-sans font-bold text-sm uppercase tracking-wide text-gray-700 hover:text-ink-main transition-colors">About</a>
+                </nav>
+
+                <!-- Actions -->
+                <div class="flex items-center space-x-2 md:space-x-4">
+                    <button id="nav-search-btn"
+                        class="p-2 text-ink-dark hover:bg-ink-mint rounded-full transition-colors flex items-center gap-2 group">
+                        <i data-lucide="search" class="w-5 h-5"></i>
+                    </button>
+                    <!-- User Icon Removed -->
+                    <button id="nav-subscribe-btn"
+                        class="hidden md:block px-4 py-2 bg-ink-dark text-white text-xs font-bold uppercase tracking-wider hover:bg-ink-main transition-colors rounded-sm shadow-sm">
+                        Subscribe
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu"
+            class="hidden md:hidden bg-ink-cream border-t border-gray-100 absolute w-full left-0 top-full">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="{{ url_for('index') }}"
+                    class="block px-3 py-2 rounded-md text-base font-bold text-ink-dark hover:bg-ink-mint hover:text-ink-main">Home</a>
+                <a href="{{ url_for('stories') }}"
+                    class="block px-3 py-2 rounded-md text-base font-bold text-ink-dark hover:bg-ink-mint hover:text-ink-main">Stories</a>
+                <a href="{{ url_for('explore_themes') }}"
+                    class="block px-3 py-2 rounded-md text-base font-bold text-ink-dark hover:bg-ink-mint hover:text-ink-main">Explore
+                    Themes</a>
+                <a href="{{ url_for('about') }}"
+                    class="block px-3 py-2 rounded-md text-base font-bold text-ink-dark hover:bg-ink-mint hover:text-ink-main">About</a>
+                <div class="pt-4 pb-2 border-t border-gray-200 mt-2">
+                    <button class="w-full text-left px-3 py-2 text-ink-brick font-bold uppercase text-sm">
+                        Subscribe Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="fixed top-24 right-4 z-50 flex flex-col gap-2">
+        {% for category, message in messages %}
+        <div class="px-6 py-3 rounded-lg shadow-lg mb-2 animate-bounce text-white font-medium
+            {% if category == 'success' %}bg-green-600
+            {% elif category == 'error' %}bg-red-600
+            {% elif category == 'message' %}bg-ink-main
+            {% else %}bg-gray-800{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    {% block content %}{% endblock %}
+
+    <!-- Footer -->
+    <footer class="bg-ink-dark text-white pt-16 pb-8 border-t-8 border-ink-brick mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+
+                <!-- Brand -->
+                <div class="col-span-1 md:col-span-1">
+                    <div class="font-serif font-black text-3xl tracking-tighter text-white mb-6">
+                        inkstone<span class="text-ink-brick">.</span>
+                    </div>
+                    <p class="text-ink-light text-sm leading-relaxed mb-6">
+                        Authentic creative voices of Chinese students worldwide.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-white hover:text-ink-light transition-colors"><i data-lucide="twitter"
+                                class="w-5 h-5"></i></a>
+                        <a href="#" class="text-white hover:text-ink-light transition-colors"><i data-lucide="facebook"
+                                class="w-5 h-5"></i></a>
+                        <a href="#" class="text-white hover:text-ink-light transition-colors"><i data-lucide="instagram"
+                                class="w-5 h-5"></i></a>
+                    </div>
+                </div>
+
+                <!-- Explore -->
+                <div class="col-span-1">
+                    <h4 class="font-bold uppercase tracking-wider text-ink-mint text-sm mb-6">Explore</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="{{ url_for('index') }}" class="hover:text-ink-light transition-colors">Home</a>
+                        </li>
+                        <li><a href="{{ url_for('stories') }}"
+                                class="hover:text-ink-light transition-colors">Stories</a></li>
+                        <li><a href="{{ url_for('explore_themes') }}"
+                                class="hover:text-ink-light transition-colors">Explore Themes</a></li>
+                        <li><a href="{{ url_for('about') }}" class="hover:text-ink-light transition-colors">About</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Themes -->
+                <div class="col-span-1">
+                    <h4 class="font-bold uppercase tracking-wider text-ink-mint text-sm mb-6">Themes</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="{{ url_for('explore_themes') }}" class="hover:text-ink-light transition-colors">All
+                                Themes</a></li>
+                        {% for theme in footer_themes[:5] %}
+                        <li><a href="{{ url_for('theme_posts', theme_slug=theme.slug) }}"
+                                class="hover:text-ink-light transition-colors">{{ theme.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- Newsletter -->
+                <div class="col-span-1 md:col-span-1">
+                    <h4 class="font-bold uppercase tracking-wider text-ink-mint text-sm mb-6">Stay Connected</h4>
+                    <p class="text-sm text-gray-300 mb-4">Get the latest stories in your inbox.</p>
+                    <form class="flex flex-col space-y-2" onsubmit="event.preventDefault(); alert('Subscribed!');">
+                        <input type="email" placeholder="Your email address"
+                            class="bg-white/10 border border-white/20 text-white placeholder-gray-400 px-4 py-2 rounded-sm focus:outline-none focus:border-ink-light text-sm" />
+                        <button
+                            class="bg-ink-brick hover:bg-red-600 text-white font-bold py-2 px-4 rounded-sm transition-colors text-sm uppercase tracking-wide">
+                            Subscribe
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+
+            <!-- Bottom Bar -->
+            <div
+                class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
+                <p>&copy; 2026 Inkstone Magazine. All rights reserved.</p>
+                <div class="flex gap-4 mt-4 md:mt-0">
+                    <span>Designed with Gemini</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Search Overlay -->
+    <div id="search-overlay"
+        class="fixed inset-0 bg-ink-dark/95 z-50 hidden flex items-center justify-center animate-fadeIn">
+        <button id="close-search" class="absolute top-8 right-8 text-white hover:text-ink-light">
+            <i data-lucide="x" class="w-10 h-10"></i>
+        </button>
+        <div class="w-full max-w-4xl px-4">
+            <form action="{{ url_for('search') }}" method="get" class="relative">
+                <input type="text" name="q" placeholder="Type to search stories..."
+                    class="w-full bg-transparent border-b-2 border-white/20 text-3xl md:text-6xl font-serif font-bold text-white placeholder-white/20 py-6 focus:outline-none focus:border-ink-light transition-colors"
+                    autocomplete="off">
+                <button type="submit"
+                    class="absolute right-0 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors">
+                    <i data-lucide="arrow-right" class="w-12 h-12"></i>
+                </button>
+            </form>
+            <p class="text-ink-light/50 mt-4 text-sm font-sans uppercase tracking-widest">Press Enter to Search</p>
+        </div>
+    </div>
+
+    <!-- Subscribe Modal -->
+    <div id="subscribe-modal"
+        class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center backdrop-blur-sm p-4 animate-fadeIn">
+        <div class="bg-white p-8 md:p-12 rounded-sm max-w-lg w-full relative shadow-2xl border-t-4 border-ink-main">
+            <button id="close-subscribe"
+                class="absolute top-4 right-4 text-gray-400 hover:text-ink-brick transition-colors">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            <h3 class="text-3xl font-serif font-black text-ink-dark mb-3">Join Inkstone.</h3>
+            <p class="text-gray-600 mb-8 leading-relaxed">Get the latest authentic stories, cultural insights, and
+                creative voices delivered straight to your inbox.</p>
+            <form id="subscribe-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Email
+                        Address</label>
+                    <input type="email" name="email" required placeholder="you@example.com"
+                        class="w-full bg-gray-50 border border-gray-200 px-4 py-3 rounded-sm focus:outline-none focus:border-ink-main focus:bg-white transition-colors">
+                </div>
+                <button type="submit"
+                    class="w-full bg-ink-dark text-white font-bold py-4 uppercase tracking-widest hover:bg-ink-main transition-colors shadow-lg">
+                    Subscribe
+                </button>
+                <p id="subscribe-message" class="text-sm text-center font-medium hidden mt-4"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Init Icons and Scripts -->
+    <script>
+        // Initialize Lucide Icons
+        document.addEventListener('DOMContentLoaded', function () {
+            lucide.createIcons();
+        });
+
+        // Mobile Menu Logic
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            const icon = mobileMenu.classList.contains('hidden') ? 'menu' : 'x';
+            // Simple re-render for icon switch would require clearing and re-adding svg, 
+            // but for simplicity we keep it as menu or toggle visibility of two icons if needed.
+            // For now, let's just toggle the menu visibility.
+        });
+
+        // Search Overlay Logic
+        const searchBtn = document.getElementById('nav-search-btn');
+        const searchOverlay = document.getElementById('search-overlay');
+        const closeSearch = document.getElementById('close-search');
+        const searchInput = searchOverlay.querySelector('input');
+
+        function toggleSearch() {
+            searchOverlay.classList.toggle('hidden');
+            if (!searchOverlay.classList.contains('hidden')) {
+                setTimeout(() => searchInput.focus(), 100);
+            }
+        }
+
+        searchBtn.addEventListener('click', toggleSearch);
+        closeSearch.addEventListener('click', toggleSearch);
+
+        // Close on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (!searchOverlay.classList.contains('hidden')) toggleSearch();
+                if (!subscribeModal.classList.contains('hidden')) toggleSubscribe();
+            }
+        });
+
+        // Subscribe Modal Logic
+        const subscribeBtn = document.getElementById('nav-subscribe-btn');
+        const subscribeModal = document.getElementById('subscribe-modal');
+        const closeSubscribe = document.getElementById('close-subscribe');
+        const subscribeForm = document.getElementById('subscribe-form');
+        const subscribeMessage = document.getElementById('subscribe-message');
+
+        function toggleSubscribe() {
+            subscribeModal.classList.toggle('hidden');
+            subscribeMessage.classList.add('hidden');
+            subscribeMessage.textContent = '';
+        }
+
+        if (subscribeBtn) subscribeBtn.addEventListener('click', toggleSubscribe);
+        if (closeSubscribe) closeSubscribe.addEventListener('click', toggleSubscribe);
+
+        // Subscribe Form Submission
+        subscribeForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const email = this.email.value;
+            const btn = this.querySelector('button');
+            const originalText = btn.textContent;
+
+            btn.disabled = true;
+            btn.textContent = 'Subscribing...';
+
+            fetch('/subscribe', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: email })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    subscribeMessage.classList.remove('hidden');
+                    if (data.success) {
+                        subscribeMessage.className = 'text-sm text-center font-medium mt-4 text-green-600';
+                        subscribeMessage.textContent = data.message;
+                        setTimeout(() => {
+                            toggleSubscribe();
+                            this.reset();
+                        }, 2000);
+                    } else {
+                        subscribeMessage.className = 'text-sm text-center font-medium mt-4 text-red-600';
+                        subscribeMessage.textContent = data.error || 'An error occurred';
+                    }
+                })
+                .catch(error => {
+                    subscribeMessage.classList.remove('hidden');
+                    subscribeMessage.className = 'text-sm text-center font-medium mt-4 text-red-600';
+                    subscribeMessage.textContent = 'Network error. Please try again.';
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                });
+        });
+    </script>
+</body>
+
+</html>

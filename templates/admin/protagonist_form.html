@@ -1,0 +1,570 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ legend }} - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>{{ legend }}</h1>
+    <a href="{{ url_for('admin_protagonists') }}" class="btn btn-secondary">
+        <i class="icon">←</i> Back to Protagonists
+    </a>
+</div>
+
+<div class="admin-content">
+    <div class="form-container">
+        <form method="POST" class="admin-form">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-section">
+                <h3>Protagonist Information</h3>
+                
+                <div class="form-group">
+                    {{ form.name.label(class="form-label") }}
+                    {{ form.name(class="form-control") }}
+                    {% if form.name.errors %}
+                        <div class="form-errors">
+                            {% for error in form.name.errors %}
+                                <span class="error">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <small class="form-help">The name of the author/protagonist.</small>
+                </div>
+
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        {{ form.is_active(class="form-checkbox") }}
+                        {{ form.is_active.label(class="checkbox-label") }}
+                    </div>
+                    <small class="form-help">When inactive, this author will not be displayed in posts (but remains in the database).</small>
+                </div>
+            </div>
+
+            {% if protagonist %}
+            <div class="form-section">
+                <h3>Manage Posts</h3>
+                
+                <!-- Add Posts Section -->
+                <div class="add-posts-section">
+                    <h4>Add Posts to Protagonist</h4>
+                    <div class="post-search">
+                        <input type="text" id="post-search" placeholder="Search posts..." class="form-control">
+                        <button type="button" id="search-posts" class="btn btn-secondary">Search</button>
+                    </div>
+                    <div id="available-posts" class="available-posts-list">
+                        <!-- Posts will be loaded here -->
+                    </div>
+                </div>
+                
+                <!-- Current Posts Section -->
+                <div class="current-posts-section" id="current-posts-section">
+                    <h4>Current Posts by this Protagonist</h4>
+                    <div id="protagonist-posts-list" class="protagonist-posts-list">
+                        {% if protagonist.post_count > 0 %}
+                        {% set all_posts = protagonist.posts.all() %}
+                        {% set sorted_posts = all_posts|sort(attribute='publication_date', reverse=True) %}
+                        {% for post in sorted_posts %}
+                        <div class="protagonist-post-item" data-post-id="{{ post.id }}">
+                            <div class="post-info">
+                                <strong>{{ post.title }}</strong>
+                                <small>{{ post.publication_date.strftime('%b %d, %Y') if post.publication_date else 'N/A' }}</small>
+                            </div>
+                            <div class="post-actions">
+                                <button type="button" class="btn btn-sm btn-danger remove-post" data-post-id="{{ post.id }}">
+                                    Remove
+                                </button>
+                                <a href="{{ url_for('edit_post', post_id=post.id) }}" class="btn btn-sm btn-secondary">Edit Post</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <div class="empty-posts">
+                            <p>No posts by this protagonist yet. Use the search above to add posts.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="form-actions">
+                {{ form.submit(class="btn btn-primary") }}
+                <a href="{{ url_for('admin_protagonists') }}" class="btn btn-secondary">Cancel</a>
+                {% if protagonist and not protagonist.is_active and protagonist.post_count == 0 %}
+                <button type="button" onclick="deleteProtagonist({{ protagonist.id }}, '{{ protagonist.name }}')" class="btn btn-danger" style="margin-left: auto;">
+                    Delete Protagonist
+                </button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.form-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.form-section h3 {
+    margin: 0 0 1.5rem 0;
+    color: #333;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 0.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #3A7467;
+    box-shadow: 0 0 0 2px rgba(58,116,103,0.25);
+}
+
+.form-help {
+    display: block;
+    margin-top: 0.5rem;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.form-errors {
+    margin-top: 0.5rem;
+}
+
+.error {
+    display: block;
+    color: #dc3545;
+    font-size: 0.9rem;
+}
+
+.protagonist-posts-list {
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.protagonist-post-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+    background: #fafafa;
+}
+
+.protagonist-post-item:last-child {
+    border-bottom: none;
+}
+
+.post-info {
+    flex: 1;
+}
+
+.post-info strong {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.post-info small {
+    color: #666;
+}
+
+.post-actions {
+    margin-left: 1rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-start;
+    padding: 2rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: #3A7467;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2d5a50;
+}
+
+.btn-secondary {
+    background: #5a8c7e;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #4a7569;
+}
+
+.btn-danger {
+    background: #C94C4C;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #B43E3E;
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+/* Post Management Styles */
+.add-posts-section, .current-posts-section {
+    margin-top: 2rem;
+}
+
+.add-posts-section h4, .current-posts-section h4 {
+    color: #374151;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.post-search {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.post-search input {
+    flex: 1;
+}
+
+.available-posts-list, .protagonist-posts-list {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.available-post-item, .protagonist-post-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    background: white;
+}
+
+.available-post-item:last-child, .protagonist-post-item:last-child {
+    border-bottom: none;
+}
+
+.available-post-item:hover {
+    background: #f9fafb;
+}
+
+.in-protagonist {
+    color: #2d5a50;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background: #d4e8e3;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.loading, .error, .no-posts {
+    text-align: center;
+    padding: 2rem;
+    color: #6b7280;
+    font-style: italic;
+}
+
+.error {
+    color: #ef4444;
+}
+
+.empty-posts {
+    text-align: center;
+    padding: 3rem;
+    color: #9ca3af;
+}
+
+.empty-posts p {
+    margin: 0;
+    font-style: italic;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const protagonistId = {{ protagonist.id if protagonist else 'null' }};
+    
+    if (protagonistId) {
+        initializePostManagement(protagonistId);
+    }
+});
+
+function initializePostManagement(protagonistId) {
+    const searchInput = document.getElementById('post-search');
+    const searchButton = document.getElementById('search-posts');
+    const availablePostsContainer = document.getElementById('available-posts');
+    
+    // Load available posts initially
+    loadAvailablePosts(protagonistId);
+    
+    // Search functionality
+    searchButton.addEventListener('click', () => {
+        loadAvailablePosts(protagonistId, searchInput.value);
+    });
+    
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            loadAvailablePosts(protagonistId, searchInput.value);
+        }
+    });
+    
+    // Remove post functionality
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-post')) {
+            removePostFromProtagonist(e.target.dataset.postId);
+        }
+    });
+}
+
+
+
+function loadAvailablePosts(protagonistId, search = '') {
+    const container = document.getElementById('available-posts');
+    container.innerHTML = '<div class="loading">Loading posts...</div>';
+    
+    const url = `/api/posts/available-for-protagonist?protagonist_id=${protagonistId}&search=${encodeURIComponent(search)}`;
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.posts) {
+                displayAvailablePosts(data.posts, protagonistId);
+            } else {
+                container.innerHTML = '<div class="error">Error loading posts</div>';
+            }
+        })
+        .catch(error => {
+            container.innerHTML = '<div class="error">Error loading posts</div>';
+        });
+}
+
+function displayAvailablePosts(posts, protagonistId) {
+    const container = document.getElementById('available-posts');
+    
+    if (posts.length === 0) {
+        container.innerHTML = '<div class="no-posts">No available posts found</div>';
+        return;
+    }
+    
+    const postsHtml = posts.map(post => `
+        <div class="available-post-item" data-post-id="${post.id}">
+            <div class="post-info">
+                <strong>${post.title}</strong>
+                <small>by ${post.author} • ${post.publication_date}</small>
+            </div>
+            <div class="post-actions">
+                ${post.in_protagonist ? 
+                    `<span class="in-protagonist">Already Associated</span>` :
+                    `<button type="button" class="btn btn-sm btn-primary add-post" data-post-id="${post.id}">Add to Protagonist</button>`
+                }
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = postsHtml;
+    
+    // Add event listeners for add buttons
+    container.querySelectorAll('.add-post').forEach(button => {
+        button.addEventListener('click', () => {
+            addPostToProtagonist(button.dataset.postId, protagonistId);
+        });
+    });
+}
+
+function addPostToProtagonist(postId, protagonistId) {
+    fetch(`/api/protagonist/${protagonistId}/posts`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            posts: [{
+                id: parseInt(postId),
+                action: 'add'
+            }]
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Post added to protagonist successfully', 'success');
+            // Update the UI with the returned posts data
+            if (data.posts) {
+                updateProtagonistPostsList(data.posts);
+            }
+            // Reload available posts to update their status
+            loadAvailablePosts(protagonistId);
+        } else {
+            showNotification('Failed to add post to protagonist', 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Error adding post to protagonist', 'error');
+    });
+}
+
+function removePostFromProtagonist(postId) {
+    if (!confirm('Are you sure you want to remove this post from the protagonist?')) {
+        return;
+    }
+    
+    const protagonistId = {{ protagonist.id if protagonist else 'null' }};
+    
+    fetch(`/api/protagonist/${protagonistId}/posts`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            posts: [{
+                id: parseInt(postId),
+                action: 'remove'
+            }]
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Post removed from protagonist successfully', 'success');
+            // Update the UI with the returned posts data
+            if (data.posts) {
+                updateProtagonistPostsList(data.posts);
+            }
+            // Reload available posts
+            loadAvailablePosts(protagonistId);
+        } else {
+            showNotification('Failed to remove post from protagonist', 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Error removing post from protagonist', 'error');
+    });
+}
+
+function updateProtagonistPostsList(posts) {
+    const container = document.getElementById('protagonist-posts-list');
+    
+    if (!container) return;
+    
+    if (posts.length === 0) {
+        container.innerHTML = '<div class="empty-posts"><p>No posts by this protagonist yet. Use the search above to add posts.</p></div>';
+        return;
+    }
+    
+    const postsHtml = posts.map(post => `
+        <div class="protagonist-post-item" data-post-id="${post.id}">
+            <div class="post-info">
+                <strong>${post.title}</strong>
+                <small>${post.publication_date ? post.publication_date : 'N/A'}</small>
+            </div>
+            <div class="post-actions">
+                <button type="button" class="btn btn-sm btn-danger remove-post" data-post-id="${post.id}">
+                    Remove
+                </button>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = postsHtml;
+}
+
+function deleteProtagonist(protagonistId, protagonistName) {
+    if (confirm(`Are you sure you want to permanently delete the protagonist "${protagonistName}"? This action cannot be undone.`)) {
+        fetch(`/admin/protagonist/${protagonistId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Protagonist deleted successfully', 'success');
+                // Redirect to protagonist list after a short delay
+                setTimeout(() => {
+                    window.location.href = '{{ url_for("admin_protagonists") }}';
+                }, 1500);
+            } else {
+                showNotification('Failed to delete protagonist: ' + (data.error || 'Unknown error'), 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Error deleting protagonist', 'error');
+        });
+    }
+}
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 4px;
+        color: white;
+        z-index: 1000;
+        background: ${type === 'success' ? '#3A7467' : '#ef4444'};
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+</script>
+{% endblock %}

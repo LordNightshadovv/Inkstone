@@ -1,0 +1,5 @@
+{
+  "name": "Inkstone Magazine Redesign",
+  "description": "A modern, responsive frontend redesign of the Inkstone digital magazine using React, Tailwind CSS, and TypeScript. Features a 'Ask Inkstone' smart assistant powered by Google Gemini.",
+  "requestFramePermissions": []
+}

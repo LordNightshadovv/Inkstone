@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+
+
+{% block content %}
+<div class="min-h-screen relative bg-ink-cream">
+    <!-- Top Navigation moved to base.html ideally, but keeping layout consistent with Redesign request -->
+    <!-- Assuming Header is handled by base.html or effectively replaced here if base doesn't match -->
+
+    <!-- Top Section: Slogan + Featured -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+
+        <!-- Slogan Card -->
+        <div
+            class="group relative overflow-hidden rounded-sm shadow-md hover:shadow-xl transition-all duration-500 bg-ink-dark h-96 lg:h-[32rem]">
+            {% if slogan_bg %}
+            <img src="{{ url_for('static', filename='uploads/' + slogan_bg.filename) }}"
+                alt="{{ slogan_bg.name or 'Inkstone Slogan Background' }}"
+                class="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-70" />
+            {% else %}
+            <img src="https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=2000&auto=format&fit=crop"
+                alt="Inkstone Slogan Background"
+                class="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-70" />
+            {% endif %}
+            <div
+                class="absolute inset-0 bg-ink-dark/40 mix-blend-multiply transition-opacity duration-500 group-hover:opacity-60">
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-br from-ink-dark/80 via-transparent to-black/40"></div>
+
+            <div class="absolute inset-0 p-8 md:p-12 flex flex-col justify-center items-center text-center z-10">
+                <div
+                    class="mb-6 text-ink-light opacity-80 transform group-hover:-translate-y-2 transition-transform duration-500">
+                    <!-- Sparkles Icon Replacement -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-sparkles">
+                        <path
+                            d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                    </svg>
+                </div>
+                <h1
+                    class="text-3xl md:text-4xl lg:text-5xl font-serif font-black text-white leading-tight mb-8 drop-shadow-xl max-w-xl tracking-tight">
+                    Amplifying the creative, authentic, and vibrant voices of Chinese students.
+                </h1>
+                <div class="relative">
+                    <span
+                        class="inline-block px-6 py-2 text-xs font-bold tracking-[0.25em] text-white uppercase border-y border-white/30 hover:border-ink-light hover:text-ink-light transition-colors duration-300">
+                        Inkstone Mission
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Featured Article -->
+        {% if featured_post %}
+        <div class="h-96 lg:h-[32rem]">
+            <a href="{{ url_for('post', slug=featured_post.slug) }}"
+                class="group cursor-pointer relative overflow-hidden rounded-sm shadow-sm hover:shadow-md transition-all duration-300 bg-white block border-2 border-transparent hover:border-ink-main h-full">
+                <div class="relative h-full w-full overflow-hidden">
+                    {% if featured_post.use_youtube_poster and featured_post.youtube_embed_url %}
+                    <iframe src="{{ featured_post.youtube_embed_url }}" title="{{ featured_post.title }}"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen class="absolute inset-0 w-full h-full"></iframe>
+                    {% elif featured_post.poster_filename %}
+                    <img src="{{ url_for('static', filename='uploads/' + featured_post.poster_filename) }}"
+                        alt="{{ featured_post.title }}"
+                        class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    {% else %}
+                    <img src="https://images.unsplash.com/photo-1516546453855-7eb75dc26068?q=80&w=1000&auto=format&fit=crop"
+                        alt="{{ featured_post.title }}"
+                        class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    {% endif %}
+
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90">
+                    </div>
+                    <div class="absolute bottom-0 left-0 p-6 md:p-8 w-full max-w-3xl">
+                        <span
+                            class="inline-block px-2 py-1 mb-3 text-xs font-bold tracking-wider text-white uppercase bg-ink-brick">
+                            {% if featured_post.theme %}{{ featured_post.theme.name }}{% elif featured_post.tags %}{{
+                            featured_post.tags[0].name }}{% else %}Featured{% endif %}
+                        </span>
+                        <h2
+                            class="text-3xl md:text-5xl font-serif font-bold text-white mb-4 leading-tight group-hover:text-ink-light transition-colors">
+                            {{ featured_post.title }}
+                        </h2>
+                        <p class="text-gray-200 text-lg md:text-xl line-clamp-2 font-sans mb-4 max-w-2xl">
+                            {{ featured_post.abstract }}
+                        </p>
+                        <div class="flex items-center text-ink-light text-sm font-medium">
+                            <span>{{ featured_post.author }}</span>
+                            <span class="mx-2">•</span>
+                            <span>{{ featured_post.publication_date.strftime('%b %d, %Y') if
+                                featured_post.publication_date else '' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endif %}
+    </section>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Section Divider -->
+        <div class="flex items-center gap-4 mb-10">
+            <h2 class="text-2xl font-serif font-black text-ink-dark uppercase tracking-widest whitespace-nowrap">
+                Latest Stories
+            </h2>
+            <div class="h-px bg-gray-200 w-full"></div>
+            <button
+                class="flex items-center text-ink-brick font-bold text-sm uppercase tracking-wide whitespace-nowrap hover:text-red-700">
+                See All <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="lucide lucide-arrow-right ml-1">
+                    <path d="M5 12h14" />
+                    <path d="m12 5 7 7-7 7" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Waterfall / Masonry Section -->
+        <section class="columns-1 md:columns-2 lg:columns-3 gap-6 mb-16">
+            {% for post in posts %}
+            {% if not featured_post or post.id != featured_post.id %}
+            <div class="mb-6 break-inside-avoid">
+                <article
+                    class="group cursor-pointer flex flex-col bg-white rounded-sm overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border-2 border-transparent hover:border-ink-main h-full">
+                    <a href="{{ url_for('post', slug=post.slug) }}" class="block relative overflow-hidden h-48">
+                        {% if post.use_youtube_poster and post.youtube_embed_url %}
+                        <iframe src="{{ post.youtube_embed_url }}" title="{{ post.title }}" frameborder="0"
+                            loading="lazy"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen class="absolute inset-0 w-full h-full"></iframe>
+                        {% elif post.poster_filename %}
+                        <img src="{{ url_for('static', filename='uploads/' + post.poster_filename) }}"
+                            alt="{{ post.title }}"
+                            class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                        {% else %}
+                        <img src="https://images.unsplash.com/photo-1544717297-fa95b6ee9643?q=80&w=1000&auto=format&fit=crop"
+                            alt="{{ post.title }}"
+                            class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                        {% endif %}
+                        <div class="absolute top-2 left-2">
+                            <span class="px-2 py-1 text-xs font-bold text-white bg-teal-600 rounded-sm">
+                                {{ post.theme.name if post.theme else 'Uncategorized' }}
+                            </span>
+                        </div>
+                    </a>
+                    <div class="p-5 flex-1 flex flex-col">
+                        {% if post.series %}
+                        <div class="text-xs font-bold text-teal-600 uppercase tracking-wider mb-2">
+                            {{ post.series.title }}
+                        </div>
+                        {% endif %}
+                        <a href="{{ url_for('post', slug=post.slug) }}" class="block">
+                            <h3
+                                class="text-xl font-serif font-bold text-gray-900 mb-2 leading-tight group-hover:text-ink-main transition-colors">
+                                {{ post.title }}
+                            </h3>
+                        </a>
+                        <div class="text-xs text-gray-500 mb-3">
+                            {{ post.publication_date.strftime('%B %d, %Y') if post.publication_date else '' }}
+                        </div>
+                        <p class="text-gray-600 text-sm line-clamp-3 mb-4 flex-1">
+                            {{ post.abstract }}
+                        </p>
+                        <div class="text-xs font-bold text-gray-700 border-t border-gray-100 pt-3 mt-auto">
+                            {{ post.author }}
+                            {% if post.editors or post.translated_by %}
+                            <div class="font-normal text-gray-500 mt-1">
+                                {% if post.editors %}Edited by {{ post.editors }}{% endif %}
+                                {% if post.editors and post.translated_by %} • {% endif %}
+                                {% if post.translated_by %}Translated by {{ post.translated_by }}{% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </article>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </section>
+
+        <!-- Big Banner Section -->
+        <section
+            class="bg-ink-mint rounded-sm p-8 md:p-12 mb-16 flex flex-col md:flex-row items-center justify-between gap-8 border border-ink-light">
+            <div class="md:w-2/3">
+                <h2 class="text-3xl font-serif font-bold text-ink-dark mb-4">
+                    Dive Deeper with the Inkstone App
+                </h2>
+                <p class="text-lg text-ink-dark/80 mb-6 max-w-xl">
+                    Get curated stories, offline reading, and exclusive interviews delivered straight to your device.
+                </p>
+                <div class="flex gap-4">
+                    <button
+                        class="px-6 py-3 bg-ink-dark text-white font-bold rounded-sm shadow-md hover:bg-ink-main transition-colors">
+                        Download for iOS
+                    </button>
+                    <button
+                        class="px-6 py-3 bg-white text-ink-dark border border-ink-dark font-bold rounded-sm hover:bg-gray-50 transition-colors">
+                        Android
+                    </button>
+                </div>
+            </div>
+            <div class="md:w-1/3 flex justify-center relative">
+                <div
+                    class="w-32 h-32 md:w-48 md:h-48 bg-ink-main rounded-full opacity-20 animate-pulse absolute blur-3xl">
+                </div>
+                <!-- Using placeholder for App Promo -->
+                <img src="https://picsum.photos/300/300" alt="App Promo"
+                    class="w-48 h-48 object-cover rounded-lg shadow-xl relative z-10 rotate-3 hover:rotate-0 transition-transform duration-500" />
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

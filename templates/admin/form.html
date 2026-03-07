@@ -1,0 +1,1173 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}{{ legend }}{% endblock %}
+
+{% block header_actions %}
+<a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Back to Posts</a>
+{% endblock %}
+
+{% block content %}
+
+<form method="POST" enctype="multipart/form-data" id="post-form" class="post-form">
+    {{ form.hidden_tag() }}
+
+    <!-- Display form-level errors -->
+    {% if form.errors %}
+    <div class="alert alert-error">
+        <strong>Please fix the following errors:</strong>
+        <ul class="mt-2 ml-2">
+            {% for field, errors in form.errors.items() %}
+            {% for error in errors %}
+            <li>{{ field }}: {{ error }}</li>
+            {% endfor %}
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Primary Fields Module -->
+    <div class="form-section">
+        <h3>Basic Information</h3>
+        <div class="form-group">
+            <label class="form-label">Title <span class="text-danger">*</span></label>
+            {{ form.title(class="form-control") }}
+            {% if form.title.errors %}
+            <span class="error text-sm">{{ form.title.errors[0] }}</span>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">URL Slug <span class="text-danger">*</span></label>
+            {{ form.slug(class="form-control") }}
+            {% if form.slug.errors %}
+            <span class="error text-sm">{{ form.slug.errors[0] }}</span>
+            {% endif %}
+            <p class="form-help">
+                The URL suffix for this post's static page (e.g., "my-post-title"). Will be auto-generated from title if
+                left empty.
+            </p>
+        </div>
+
+        <!-- Authors Section -->
+        <div class="form-group">
+            <label class="form-label">Authors <span class="text-danger">*</span></label>
+            <!-- Hidden field that stores the combined authors string -->
+            {{ form.author(style="display: none;") }}
+            <div id="authors-container">
+                <!-- Dynamic author inputs will be added here -->
+            </div>
+            <button type="button" id="add-author" class="btn btn-sm btn-outline mt-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add Author
+            </button>
+            <p class="form-help">
+                Add multiple authors. They will be displayed as "Author 1 | Author 2 | Author 3" on the frontend.
+            </p>
+        </div>
+
+        <!-- Editors Section -->
+        <div class="form-group">
+            <label class="form-label">Edited By</label>
+            <!-- Hidden field that stores the combined editors string -->
+            {{ form.editors(style="display: none;") }}
+            <div id="editors-container">
+                <!-- Dynamic editor inputs will be added here -->
+            </div>
+            <button type="button" id="add-editor" class="btn btn-sm btn-outline mt-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add Editor
+            </button>
+            <p class="form-help">
+                Add multiple editors. They will be displayed as "Editor 1 | Editor 2 | Editor 3" on the frontend.
+            </p>
+        </div>
+
+        <!-- Translators Section -->
+        <div class="form-group">
+            <label class="form-label">Translated By</label>
+            {{ form.translated_by(style="display: none;") }}
+            <div id="translators-container">
+                <!-- Dynamic translator inputs will be added here -->
+            </div>
+            <button type="button" id="add-translator" class="btn btn-sm btn-outline mt-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add Translator
+            </button>
+            <p class="form-help">
+                Optional. Add multiple translators.
+            </p>
+        </div>
+
+        <div class="form-group">
+            {{ form.abstract.label(class="form-label") }}
+            {{ form.abstract(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.poster_upload.label(class="form-label") }}
+            {% if post and post.poster_filename %}
+            <div class="current-file-display flex flex-col gap-2 mb-3">
+                <div
+                    class="text-sm font-medium text-gray-700 bg-gray-50 px-3 py-1.5 rounded border border-gray-200 inline-block w-fit">
+                    Current: {{ post.poster_filename }}
+                </div>
+                <img src="{{ url_for('static', filename='uploads/' + post.poster_filename) }}"
+                    class="h-32 w-auto object-cover rounded shadow-sm border border-gray-200" alt="Current Poster">
+            </div>
+            {% endif %}
+            {{ form.poster_upload(class="form-control") }}
+        </div>
+        <!-- Publication Date -->
+        <div class="form-group">
+            <label class="form-label">Publication Date</label>
+            <div class="form-row">
+                <div class="form-col">
+                    {{ form.pub_year.label(class="form-label text-sm mb-1") }}
+                    {{ form.pub_year(class="form-control text-center") }}
+                </div>
+                <div class="form-col">
+                    {{ form.pub_month.label(class="form-label text-sm mb-1") }}
+                    {{ form.pub_month(class="form-control text-center") }}
+                </div>
+                <div class="form-col">
+                    {{ form.pub_day.label(class="form-label text-sm mb-1") }}
+                    {{ form.pub_day(class="form-control text-center") }}
+                </div>
+            </div>
+            <p class="form-help">
+                This date determines the post's position in chronological listings.
+            </p>
+        </div>
+    </div>
+
+    <!-- Text Content Module -->
+    <div class="form-section">
+        <h3>Text Content <span class="text-danger">*</span></h3>
+        <p class="text-sm font-semibold mb-3" style="color: var(--ink-main);">
+            At least one of Text Content, Image Gallery, and Video Content must have inputs for a post to be publishable
+        </p>
+        <div class="form-group">
+            {{ form.text_content.label(class="form-label") }}
+            <!-- Hidden textarea for form submission -->
+            {{ form.text_content(style="display: none;") }}
+            <!-- Quill editor container -->
+            <div id="text_content"></div>
+            {% if form.text_content.errors %}
+            <div class="error mt-2">
+                {{ form.text_content.errors[0] }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Image Gallery Module -->
+    <div class="form-section">
+        <h3>Image Gallery <span class="text-danger">*</span></h3>
+        <p class="text-sm font-semibold mb-3" style="color: var(--ink-main);">
+            At least one of Text Content, Image Gallery, and Video Content must have inputs for a post to be publishable
+        </p>
+        <div class="gallery-uploader">
+            <div id="dropzone" class="dropzone">
+                <div class="dropzone-message">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7,10 12,15 17,10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <p>Drop images here or click to upload</p>
+                    <p class="dropzone-hint">Supports JPG, PNG, GIF up to 10MB each</p>
+                </div>
+                <input type="file" id="file-input" name="images" multiple accept="image/*" style="display: none;">
+            </div>
+
+            <div id="image-preview" class="image-preview-grid">
+                <!-- Show existing images if editing -->
+                {% if post and post.pictures %}
+                {% for picture in post.pictures | sort(attribute='display_order') %}
+                <div class="image-item existing-image" data-picture-id="{{ picture.id }}" draggable="true">
+                    <img src="{{ url_for('static', filename='uploads/' + picture.filename) }}"
+                        alt="{{ picture.filename }}">
+                    <button type="button" class="delete-btn"
+                        onclick="removeExistingImage(this, {{ picture.id }})">×</button>
+                    <button type="button"
+                        class="poster-btn {% if post.poster_filename == picture.filename %}active{% endif %}"
+                        onclick="setExistingPosterImage(this, '{{ picture.filename }}')" title="Set as poster image">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polygon
+                                points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26">
+                            </polygon>
+                        </svg>
+                    </button>
+                    <div class="drag-handle" title="Drag to reorder">⋮⋮</div>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="gallery-template-selector">
+                <h4>Gallery Layout</h4>
+                <div class="template-options">
+                    <div class="template-option" data-template="slideshow">
+                        <div class="template-preview slideshow-preview">
+                            <div class="slide-indicator"></div>
+                            <div class="slide-nav">‹ ›</div>
+                        </div>
+                        <span>Slideshow</span>
+                        <button type="button" class="preview-btn" onclick="showTemplatePreview('slideshow-preview')"
+                            title="Preview slideshow template">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="template-option" data-template="waterfall">
+                        <div class="template-preview waterfall-preview">
+                            <div class="waterfall-col"></div>
+                            <div class="waterfall-col"></div>
+                            <div class="waterfall-col"></div>
+                        </div>
+                        <span>Waterfall Gallery</span>
+                        <button type="button" class="preview-btn" onclick="showTemplatePreview('waterfall-preview')"
+                            title="Preview waterfall template">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{ form.gallery_template(style="display: none;") }}
+    </div>
+
+    <!-- Video Module -->
+    <div class="form-section">
+        <h3>Video Content <span class="text-danger">*</span></h3>
+        <p class="text-sm font-semibold mb-3" style="color: var(--ink-main);">
+            At least one of Text Content, Image Gallery, and Video Content must have inputs for a post to be publishable
+        </p>
+        <div class="form-group">
+            {{ form.youtube_url.label(class="form-label") }}
+            {{ form.youtube_url(class="form-control", placeholder="https://www.youtube.com/watch?v=...") }}
+        </div>
+        <div class="form-group">
+            <label class="checkbox-label">
+                {{ form.use_youtube_poster() }}
+                <span class="checkbox-text">Use YouTube Video as Poster</span>
+            </label>
+            <p class="form-help">
+                If checked, the video will be displayed instead of the poster image on the post card.
+            </p>
+        </div>
+    </div>
+
+    <!-- Featured Post Module -->
+    <div class="form-section">
+        <h3>Featured Post Settings</h3>
+        <div class="form-group">
+            <label class="checkbox-label">
+                {{ form.is_featured() }}
+                <span class="checkbox-text">Mark as Featured Post</span>
+            </label>
+        </div>
+
+        <div id="featured-templates" class="featured-template-selector" style="display: none;">
+            <h4>Featured Template</h4>
+            <div class="template-options">
+                <div class="template-option" data-template="T1">
+                    <div class="template-preview t1-preview">
+                        <div class="t1-text">Title & Abstract</div>
+                        <div class="t1-play">▶</div>
+                    </div>
+                    <span>Template T1</span>
+                    <button type="button" class="preview-btn" onclick="showTemplatePreview('featured-T1-preview')"
+                        title="Preview T1 template">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+                <div class="template-option" data-template="T2">
+                    <div class="template-preview t2-preview">
+                        <div class="t2-text">Text</div>
+                        <div class="t2-image">Image</div>
+                    </div>
+                    <span>Template T2</span>
+                    <button type="button" class="preview-btn" onclick="showTemplatePreview('featured-T2-preview')"
+                        title="Preview T2 template">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {{ form.featured_template(style="display: none;") }}
+    </div>
+
+    <!-- Theme, Tags & Keywords Module -->
+    <div class="form-section">
+        <h3>Theme, Tags & Keywords</h3>
+
+        <!-- Theme Selection -->
+        <div class="form-group">
+            {{ form.theme_id.label(class="form-label") }}
+            {{ form.theme_id(class="form-control") }}
+            <p class="form-help">
+                Select the main theme this post belongs to. This determines which theme page it appears on.
+            </p>
+        </div>
+
+        <!-- Series Information -->
+        <div class="form-group">
+            <label class="form-label">Series</label>
+            <div class="bg-gray-50 border border-gray-200 rounded p-4">
+                {% if post and post.series %}
+                <p class="text-ink-dark font-medium m-0 text-sm">
+                    📚 This post is part of <strong>{{ post.series.title }}</strong>
+                </p>
+                <p class="text-gray-600 text-sm mt-2">
+                    To change or remove this post from the series, use the <strong>Series</strong> tab in CMS.
+                </p>
+                {% else %}
+                <p class="text-ink-dark font-medium m-0 text-sm">
+                    💡 You can add this post to a Series in the <strong>Series</strong> tab after you publish it.
+                </p>
+                {% endif %}
+            </div>
+            <!-- Hidden fields to preserve existing series data -->
+            {% if post and post.series_id %}
+            <input type="hidden" name="series_id" value="{{ post.series_id }}">
+            <input type="hidden" name="series_order" value="{{ post.series_order if post.series_order else '' }}">
+            {% else %}
+            <input type="hidden" name="series_id" value="0">
+            <input type="hidden" name="series_order" value="">
+            {% endif %}
+        </div>
+
+        <!-- Media Type and Display Type Tags -->
+        <div class="form-group">
+            {{ form.tags.label(class="form-label") }}
+            <div class="tags-container grid grid-cols-2 gap-4 mt-2">
+                <!-- Media Type Tags -->
+                <div class="tag-category">
+                    <h4 class="text-sm font-semibold text-gray-600 mb-2">Media Type</h4>
+                    {% for value, label in form.tags.choices %}
+                    {% if label in ['article', 'gallery', 'video'] %}
+                    <label class="tag-checkbox flex items-center gap-2 cursor-pointer mb-1">
+                        <input type="checkbox" name="tags" value="{{ value }}" {% if form.tags.data and value in
+                            form.tags.data %}checked{% endif %} class="form-checkbox">
+                        <span class="text-sm capitalize">{{ label }}</span>
+                    </label>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+
+                <!-- Display Type Tags -->
+                <div class="tag-category">
+                    <h4 class="text-sm font-semibold text-gray-600 mb-2">Display Type</h4>
+                    {% for value, label in form.tags.choices %}
+                    {% if label in ['waterfall', 'slideshow'] %}
+                    <label class="tag-checkbox flex items-center gap-2 cursor-pointer mb-1">
+                        <input type="checkbox" name="tags" value="{{ value }}" {% if form.tags.data and value in
+                            form.tags.data %}checked{% endif %} class="form-checkbox">
+                        <span class="text-sm capitalize">{{ label }}</span>
+                    </label>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            <p class="form-help">
+                Select media type and display type tags for technical categorization.
+            </p>
+        </div>
+
+        <!-- Keywords Section -->
+        <div class="form-group">
+            <label class="form-label">Keywords</label>
+            <!-- Hidden field that stores the combined keywords string -->
+            {{ form.keywords(style="display: none;") }}
+            <div id="keywords-container">
+                <!-- Dynamic keyword inputs will be added here -->
+            </div>
+            <button type="button" id="add-keyword" class="btn btn-sm btn-outline mt-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add Keyword
+            </button>
+            <p class="form-help">
+                Add keywords that describe the content. They will be displayed as styled tags on the frontend.
+            </p>
+        </div>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="form-actions">
+        {{ form.submit(class="btn btn-primary", id="submit-btn") }}
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+
+<!-- Include Quill Rich Text Editor -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let editor;
+        let uploadedImages = [];
+        const existingImageCount = {{ post.pictures| length if post else 0
+    }};
+
+    // Get the hidden textarea
+    const textContentTextarea = document.querySelector('textarea[name="text_content"]');
+
+    // Initialize Quill editor with full formatting support
+    const quill = new Quill('#text_content', {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, 4, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'color': ['#365B4C', '#3A7467', '#4E8C76', '#7BAF9E', '#C94C4C', '#000000', '#FFFFFF'] }],
+                [{ 'background': [] }],
+                [{ 'size': ['small', false, 'large', 'huge'] }],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                [{ 'indent': '-1' }, { 'indent': '+1' }],
+                ['blockquote', 'link'],
+                [{ 'align': [] }],
+                ['clean']
+            ]
+        },
+        placeholder: 'Write your post content here...'
+    });
+
+    // Store reference for validation
+    editor = quill;
+
+    // Load existing content if editing
+    {% if post and post.text_content %}
+    quill.root.innerHTML = {{ post.text_content | tojson }};
+    {% endif %}
+
+    // Sync Quill content with hidden textarea for form submission
+    quill.on('text-change', function () {
+        textContentTextarea.value = quill.root.innerHTML;
+        validateForm();
+    });
+
+    // Initialize textarea value
+    textContentTextarea.value = quill.root.innerHTML;
+
+    // File upload handling
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('file-input');
+    const imagePreview = document.getElementById('image-preview');
+
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('dragover');
+    });
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        handleFiles(e.dataTransfer.files);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files);
+    });
+
+    function handleFiles(files) {
+        Array.from(files).forEach(file => {
+            // Skip empty files or files without names
+            if (!file || !file.name || file.name.trim() === '' || file.size === 0) {
+                console.log('Skipping empty or invalid file:', file);
+                return;
+            }
+
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    addImagePreview(e.target.result, file.name);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        validateForm();
+    }
+
+    function addImagePreview(src, filename) {
+        const imageItem = document.createElement('div');
+        imageItem.className = 'image-item';
+        imageItem.innerHTML = `
+            <img src="${src}" alt="${filename}">
+            <button type="button" class="delete-btn" onclick="removeImage(this)">×</button>
+            <button type="button" class="poster-btn" onclick="setPosterImage(this)" title="Set as poster image">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon>
+                </svg>
+            </button>
+            <div class="drag-handle">⋮⋮</div>
+        `;
+        imagePreview.appendChild(imageItem);
+        uploadedImages.push({ src, filename });
+    }
+
+    window.removeImage = function (btn) {
+        const imageItem = btn.parentElement;
+        const index = Array.from(imagePreview.children).indexOf(imageItem);
+        uploadedImages.splice(index, 1);
+        imageItem.remove();
+        validateForm();
+    };
+
+    // Handle existing image removal
+    window.removeExistingImage = function (btn, pictureId) {
+        if (confirm('Are you sure you want to delete this image? This action cannot be undone.')) {
+            const imageItem = btn.parentElement;
+            imageItem.style.opacity = '0.5';
+            imageItem.style.pointerEvents = 'none';
+
+            // Add hidden input to mark for deletion
+            const deleteInput = document.createElement('input');
+            deleteInput.type = 'hidden';
+            deleteInput.name = 'delete_images';
+            deleteInput.value = pictureId;
+            document.getElementById('post-form').appendChild(deleteInput);
+
+            // Remove from DOM after animation
+            setTimeout(() => {
+                imageItem.remove();
+                validateForm();
+            }, 300);
+        }
+    };
+
+    // Handle existing image poster selection
+    window.setExistingPosterImage = function (btn, filename) {
+        // Remove active class from all poster buttons
+        document.querySelectorAll('.poster-btn').forEach(posterBtn => {
+            posterBtn.classList.remove('active');
+        });
+
+        // Add active class to clicked button
+        btn.classList.add('active');
+
+        // Set poster filename in hidden field
+        let posterInput = document.getElementById('existing_poster_filename');
+        if (!posterInput) {
+            posterInput = document.createElement('input');
+            posterInput.type = 'hidden';
+            posterInput.id = 'existing_poster_filename';
+            posterInput.name = 'existing_poster_filename';
+            document.getElementById('post-form').appendChild(posterInput);
+        }
+        posterInput.value = filename;
+    };
+
+    // Template selection
+    document.querySelectorAll('.template-option').forEach(option => {
+        option.addEventListener('click', function () {
+            const template = this.dataset.template;
+            const parent = this.parentElement;
+
+            // Remove active class from siblings
+            parent.querySelectorAll('.template-option').forEach(opt => {
+                opt.classList.remove('active');
+            });
+
+            // Add active class to clicked option
+            this.classList.add('active');
+
+            // Set hidden field value
+            if (parent.closest('.gallery-template-selector')) {
+                document.getElementById('gallery_template').value = template;
+            } else if (parent.closest('.featured-template-selector')) {
+                document.getElementById('featured_template').value = template;
+            }
+
+            validateForm();
+        });
+    });
+
+    // Initialize Active Template from hidden input
+    const currentTemplate = document.getElementById('gallery_template').value;
+    if (currentTemplate) {
+        const activeOption = document.querySelector(`.template-option[data-template="${currentTemplate}"]`);
+        if (activeOption) {
+            activeOption.classList.add('active');
+        }
+    }
+
+    const currentFeaturedTemplate = document.getElementById('featured_template').value;
+    if (currentFeaturedTemplate) {
+         const activeFeatured = document.querySelector(`.template-option[data-template="${currentFeaturedTemplate}"]`);
+         if (activeFeatured) {
+             activeFeatured.classList.add('active');
+         }
+    }
+
+    // Featured post toggle
+    const featuredCheckbox = document.getElementById('is_featured');
+    const featuredTemplates = document.getElementById('featured-templates');
+
+    featuredCheckbox.addEventListener('change', function () {
+        if (this.checked) {
+            featuredTemplates.style.display = 'block';
+        } else {
+            featuredTemplates.style.display = 'none';
+            document.getElementById('featured_template').value = '';
+        }
+        validateForm();
+    });
+
+    // Form validation - now just for visual feedback, doesn't disable button
+    function validateForm() {
+        const hasText = editor && editor.getText().trim().length > 0;
+        // Check for newly uploaded images OR images that already exist on the post (for editing)
+        const hasImages = uploadedImages.length > 0 || existingImageCount > 0;
+        const hasVideo = document.getElementById('youtube_url').value.trim().length > 0;
+
+        const hasContent = hasText || hasImages || hasVideo;
+        const submitBtn = document.getElementById('submit-btn');
+
+        // Visual feedback only - button remains clickable
+        if (hasContent) {
+            submitBtn.classList.remove('btn-warning');
+            submitBtn.classList.add('btn-primary');
+        } else {
+            submitBtn.classList.remove('btn-primary');
+            submitBtn.classList.add('btn-warning');
+        }
+    }
+
+    // Poster image selection
+    window.setPosterImage = function (btn) {
+        // Remove active class from all poster buttons
+        document.querySelectorAll('.poster-btn').forEach(posterBtn => {
+            posterBtn.classList.remove('active');
+        });
+
+        // Add active class to clicked button
+        btn.classList.add('active');
+
+        // Store poster image info (in real implementation, you'd save the image ID)
+        const imageItem = btn.parentElement;
+        const index = Array.from(imagePreview.children).indexOf(imageItem);
+
+        // Store in hidden field for form submission
+        let posterInput = document.getElementById('poster_image_index');
+        if (!posterInput) {
+            posterInput = document.createElement('input');
+            posterInput.type = 'hidden';
+            posterInput.id = 'poster_image_index';
+            posterInput.name = 'poster_image_index';
+            document.getElementById('post-form').appendChild(posterInput);
+        }
+        posterInput.value = index;
+    };
+
+    // Template preview functionality
+    window.showTemplatePreview = function (templateName) {
+        const modal = document.createElement('div');
+        modal.className = 'template-preview-modal';
+        modal.innerHTML = `
+            <div class="preview-overlay" onclick="closeTemplatePreview()">
+                <div class="preview-frame" onclick="event.stopPropagation()">
+                    <iframe src="/static/images/previews/${templateName}.html" frameborder="0"></iframe>
+                    <button class="preview-close" onclick="closeTemplatePreview()">×</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.closeTemplatePreview = function () {
+        const modal = document.querySelector('.template-preview-modal');
+        if (modal) {
+            modal.remove();
+            document.body.style.overflow = 'auto';
+        }
+    };
+
+    // Drag and drop functionality for image reordering
+    function initializeDragAndDrop() {
+        const imagePreview = document.getElementById('image-preview');
+        let draggedElement = null;
+
+        // Add drag event listeners to existing and new images
+        function addDragListeners(imageItem) {
+            imageItem.draggable = true;
+
+            imageItem.addEventListener('dragstart', function (e) {
+                draggedElement = this;
+                this.style.opacity = '0.5';
+                e.dataTransfer.effectAllowed = 'move';
+            });
+
+            imageItem.addEventListener('dragend', function (e) {
+                this.style.opacity = '1';
+                draggedElement = null;
+            });
+
+            imageItem.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+            });
+
+            imageItem.addEventListener('drop', function (e) {
+                e.preventDefault();
+                if (draggedElement && draggedElement !== this) {
+                    const allItems = Array.from(imagePreview.children);
+                    const draggedIndex = allItems.indexOf(draggedElement);
+                    const targetIndex = allItems.indexOf(this);
+
+                    if (draggedIndex < targetIndex) {
+                        this.parentNode.insertBefore(draggedElement, this.nextSibling);
+                    } else {
+                        this.parentNode.insertBefore(draggedElement, this);
+                    }
+
+                    // Update display order for existing images
+                    updateImageOrder();
+                }
+            });
+        }
+
+        // Initialize drag for existing images
+        document.querySelectorAll('.image-item').forEach(addDragListeners);
+
+        // Override addImagePreview to include drag functionality
+        const originalAddImagePreview = addImagePreview;
+        addImagePreview = function (src, filename) {
+            originalAddImagePreview(src, filename);
+            const newItem = imagePreview.lastElementChild;
+            addDragListeners(newItem);
+        };
+    }
+
+    function updateImageOrder() {
+        const imageItems = document.querySelectorAll('.image-item');
+        imageItems.forEach((item, index) => {
+            // Add hidden input for new order
+            const pictureId = item.dataset.pictureId;
+            if (pictureId) {
+                let orderInput = document.querySelector(`input[name="image_order_${pictureId}"]`);
+                if (!orderInput) {
+                    orderInput = document.createElement('input');
+                    orderInput.type = 'hidden';
+                    orderInput.name = `image_order_${pictureId}`;
+                    document.getElementById('post-form').appendChild(orderInput);
+                }
+                orderInput.value = index;
+            }
+        });
+    }
+
+    // Initialize drag and drop
+    initializeDragAndDrop();
+
+    // Authors and Editors Management
+    function initializeAuthorsEditors() {
+        // Initialize authors
+        const authorField = document.getElementById('author');
+        if (authorField) {
+            const existingAuthors = authorField.value;
+            if (existingAuthors && existingAuthors.trim()) {
+                const authors = existingAuthors.split(' | ').map(a => a.trim()).filter(a => a);
+                authors.forEach((author, index) => {
+                    addAuthorField(author, index === 0);
+                });
+            } else {
+                addAuthorField('', true);
+            }
+        }
+
+        // Initialize editors
+        const editorField = document.getElementById('editors');
+        if (editorField) {
+            const existingEditors = editorField.value;
+            if (existingEditors && existingEditors.trim()) {
+                const editors = existingEditors.split(' | ').map(e => e.trim()).filter(e => e);
+                editors.forEach((editor, index) => {
+                    addEditorField(editor, index === 0);
+                });
+            } else {
+                addEditorField('', true);
+            }
+        }
+
+        // Initialize translators
+        const translatorField = document.getElementById('translated_by');
+        if (translatorField) {
+            const existingTranslators = translatorField.value;
+            if (existingTranslators && existingTranslators.trim()) {
+                const separators = existingTranslators.includes('|') ? ' | ' : ', ';
+                const translators = existingTranslators.split(separators).map(t => t.trim()).filter(t => t);
+                translators.forEach((translator, index) => {
+                    addTranslatorField(translator, index === 0);
+                });
+            } else {
+                addTranslatorField('', true);
+            }
+        }
+    }
+
+    function addAuthorField(value = '', isFirst = false) {
+        const container = document.getElementById('authors-container');
+        const fieldGroup = document.createElement('div');
+        fieldGroup.className = 'author-input-group';
+        fieldGroup.style.position = 'relative';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'form-control';
+        input.placeholder = 'Enter author name';
+        input.value = value;
+        input.addEventListener('input', function () {
+            updateAuthorsField();
+            handleAuthorAutocomplete(this);
+        });
+
+        // Create autocomplete dropdown
+        const dropdown = document.createElement('div');
+        dropdown.className = 'author-dropdown'; // CSS class handles style
+
+        fieldGroup.appendChild(input);
+        fieldGroup.appendChild(dropdown);
+
+        if (!isFirst) {
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn btn-sm btn-danger';
+            removeBtn.innerHTML = '×';
+            removeBtn.onclick = () => {
+                fieldGroup.remove();
+                updateAuthorsField();
+            };
+            fieldGroup.appendChild(removeBtn);
+        }
+
+        container.appendChild(fieldGroup);
+        updateAuthorsField();
+    }
+
+    function addEditorField(value = '', isFirst = false) {
+        const container = document.getElementById('editors-container');
+        const fieldGroup = document.createElement('div');
+        fieldGroup.className = 'editor-input-group';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'form-control';
+        input.placeholder = 'Enter editor name';
+        input.value = value;
+        input.addEventListener('input', updateEditorsField);
+
+        fieldGroup.appendChild(input);
+
+        if (!isFirst) {
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn btn-sm btn-danger';
+            removeBtn.innerHTML = '×';
+            removeBtn.onclick = () => {
+                fieldGroup.remove();
+                updateEditorsField();
+            };
+            fieldGroup.appendChild(removeBtn);
+        }
+
+        container.appendChild(fieldGroup);
+        updateEditorsField();
+    }
+
+    function addTranslatorField(value = '', isFirst = false) {
+        const container = document.getElementById('translators-container');
+        const fieldGroup = document.createElement('div');
+        fieldGroup.className = 'translator-input-group';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'form-control';
+        input.placeholder = 'Enter translator name';
+        input.value = value;
+        input.addEventListener('input', updateTranslatorsField);
+
+        fieldGroup.appendChild(input);
+
+        if (!isFirst) {
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn btn-sm btn-danger';
+            removeBtn.innerHTML = '×';
+            removeBtn.onclick = () => {
+                fieldGroup.remove();
+                updateTranslatorsField();
+            };
+            fieldGroup.appendChild(removeBtn);
+        }
+
+        container.appendChild(fieldGroup);
+        updateTranslatorsField();
+    }
+
+    function updateAuthorsField() {
+        const container = document.getElementById('authors-container');
+        const inputs = container.querySelectorAll('input');
+        const authors = Array.from(inputs).map(input => input.value.trim()).filter(val => val);
+        document.getElementById('author').value = authors.join(' | ');
+    }
+
+    function updateEditorsField() {
+        const container = document.getElementById('editors-container');
+        const inputs = container.querySelectorAll('input');
+        const editors = Array.from(inputs).map(input => input.value.trim()).filter(val => val);
+        document.getElementById('editors').value = editors.join(' | ');
+    }
+
+    function updateTranslatorsField() {
+        const container = document.getElementById('translators-container');
+        const inputs = container.querySelectorAll('input');
+        const translators = Array.from(inputs).map(input => input.value.trim()).filter(val => val);
+        document.getElementById('translated_by').value = translators.join(' | ');
+    }
+
+    // Keywords Management
+    function initializeKeywords() {
+        const keywordField = document.getElementById('keywords');
+        const existingKeywords = keywordField ? keywordField.value : '';
+
+        if (existingKeywords && existingKeywords.trim()) {
+            const keywords = existingKeywords.split('|').map(k => k.trim()).filter(k => k);
+            keywords.forEach((keyword, index) => {
+                addKeywordField(keyword, index === 0);
+            });
+        } else {
+            addKeywordField('', true);
+        }
+    }
+
+    function addKeywordField(value = '', isFirst = false) {
+        const container = document.getElementById('keywords-container');
+        const fieldGroup = document.createElement('div');
+        fieldGroup.className = 'keyword-input-group';
+        fieldGroup.style.position = 'relative';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'form-control';
+        input.placeholder = 'Enter keyword';
+        input.value = value;
+        input.addEventListener('input', function () {
+            updateKeywordsField();
+            handleKeywordAutocomplete(this);
+        });
+
+        const dropdown = document.createElement('div');
+        dropdown.className = 'keyword-dropdown'; // CSS class handles style
+
+        fieldGroup.appendChild(input);
+        fieldGroup.appendChild(dropdown);
+
+        if (!isFirst) {
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn btn-sm btn-danger';
+            removeBtn.innerHTML = '×';
+            removeBtn.onclick = () => {
+                fieldGroup.remove();
+                updateKeywordsField();
+            };
+            fieldGroup.appendChild(removeBtn);
+        }
+
+        container.appendChild(fieldGroup);
+        updateKeywordsField();
+    }
+
+    function updateKeywordsField() {
+        const container = document.getElementById('keywords-container');
+        const inputs = container.querySelectorAll('input');
+        const keywords = Array.from(inputs).map(input => input.value.trim()).filter(val => val);
+        document.getElementById('keywords').value = keywords.join('|');
+    }
+
+    // Autocomplete Logic
+    let autocompleteTimeout;
+    function handleKeywordAutocomplete(input) {
+        clearTimeout(autocompleteTimeout);
+        const dropdown = input.parentElement.querySelector('.keyword-dropdown');
+        const query = input.value.trim();
+
+        if (query.length < 2) {
+            dropdown.style.display = 'none';
+            return;
+        }
+
+        autocompleteTimeout = setTimeout(() => {
+            fetch(`/api/keywords/search?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.keywords && data.keywords.length > 0) {
+                        dropdown.innerHTML = data.keywords.map(kw => `
+                            <div class="keyword-suggestion" 
+                                 onclick="selectKeyword('${kw.name}', this)">
+                                <span style="font-weight: 500;">${kw.name}</span>
+                                <span class="autocomplete-badge">
+                                    ${kw.usage_count} use${kw.usage_count !== 1 ? 's' : ''}
+                                </span>
+                            </div>
+                        `).join('');
+                        dropdown.style.display = 'block';
+                    } else {
+                        dropdown.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Autocomplete error:', error);
+                    dropdown.style.display = 'none';
+                });
+        }, 300);
+    }
+
+    window.selectKeyword = function (keyword, element) {
+        const input = element.closest('.keyword-input-group').querySelector('input');
+        const dropdown = element.closest('.keyword-dropdown');
+
+        input.value = keyword;
+        dropdown.style.display = 'none';
+        updateKeywordsField();
+
+        const nextInput = input.closest('.keyword-input-group').nextElementSibling?.querySelector('input');
+        if (nextInput) {
+            nextInput.focus();
+        } else {
+            addKeywordField();
+            setTimeout(() => {
+                const newInput = document.querySelector('#keywords-container .keyword-input-group:last-child input');
+                if (newInput) newInput.focus();
+            }, 100);
+        }
+    };
+
+    let authorAutocompleteTimeout;
+    window.handleAuthorAutocomplete = function (input) {
+        clearTimeout(authorAutocompleteTimeout);
+        const dropdown = input.parentElement.querySelector('.author-dropdown');
+        const query = input.value.trim();
+
+        if (query.length < 2) {
+            dropdown.style.display = 'none';
+            return;
+        }
+
+        authorAutocompleteTimeout = setTimeout(() => {
+            fetch(`/api/protagonists/search?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.protagonists && data.protagonists.length > 0) {
+                        dropdown.innerHTML = data.protagonists.map(protagonist => `
+                            <div class="author-suggestion" 
+                                 onclick="selectAuthor('${protagonist.name.replace(/'/g, "\\'")}', this)">
+                                <span style="font-weight: 500;">${protagonist.name}</span>
+                                <span class="autocomplete-badge">
+                                    ${protagonist.usage_count} post${protagonist.usage_count !== 1 ? 's' : ''}
+                                </span>
+                            </div>
+                        `).join('');
+                        dropdown.style.display = 'block';
+                    } else {
+                        dropdown.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Autocomplete error:', error);
+                    dropdown.style.display = 'none';
+                });
+        }, 300);
+    };
+
+    window.selectAuthor = function (authorName, element) {
+        const input = element.closest('.author-input-group').querySelector('input');
+        const dropdown = element.closest('.author-dropdown');
+
+        input.value = authorName;
+        dropdown.style.display = 'none';
+        updateAuthorsField();
+
+        const nextInput = input.closest('.author-input-group').nextElementSibling?.querySelector('input');
+        if (nextInput) {
+            nextInput.focus();
+        } else {
+            addAuthorField();
+            setTimeout(() => {
+                const newInput = document.querySelector('#authors-container .author-input-group:last-child input');
+                if (newInput) newInput.focus();
+            }, 100);
+        }
+    };
+
+    // Global click to close dropdowns
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('.keyword-input-group')) {
+            document.querySelectorAll('.keyword-dropdown').forEach(dropdown => {
+                dropdown.style.display = 'none';
+            });
+        }
+        if (!e.target.closest('.author-input-group')) {
+            document.querySelectorAll('.author-dropdown').forEach(dropdown => {
+                dropdown.style.display = 'none';
+            });
+        }
+    });
+
+    // Add event listeners for add buttons
+    const addAuthorBtn = document.getElementById('add-author');
+    if (addAuthorBtn) addAuthorBtn.addEventListener('click', () => addAuthorField());
+
+    const addEditorBtn = document.getElementById('add-editor');
+    if (addEditorBtn) addEditorBtn.addEventListener('click', () => addEditorField());
+
+    const addTranslatorBtn = document.getElementById('add-translator');
+    if (addTranslatorBtn) addTranslatorBtn.addEventListener('click', () => addTranslatorField());
+
+    const addKeywordBtn = document.getElementById('add-keyword');
+    if (addKeywordBtn) addKeywordBtn.addEventListener('click', () => addKeywordField());
+
+    // Initialize
+    initializeAuthorsEditors();
+    initializeKeywords();
+
+    // Initial validation
+    const youtubeInput = document.getElementById('youtube_url');
+    if (youtubeInput) youtubeInput.addEventListener('input', validateForm);
+    validateForm();
+});
+</script>
+{% endblock %}

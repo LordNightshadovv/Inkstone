@@ -1,0 +1,396 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}{{ legend }}{% endblock %}
+
+{% block header_actions %}
+<a href="{{ url_for('admin_keywords') }}" class="btn btn-secondary">Back to Keywords</a>
+{% endblock %}
+
+{% block content %}
+<div class="keyword-form-container">
+    <form method="POST" class="keyword-form">
+        {{ form.hidden_tag() }}
+        
+        <!-- Keyword Information Section -->
+        <div class="form-module">
+            <h3>Keyword Information</h3>
+            <div class="form-group">
+                {{ form.name.label(class="form-label") }}
+                {{ form.name(class="form-input") }}
+                {% if form.name.errors %}
+                    <span class="error-message">{{ form.name.errors[0] }}</span>
+                {% endif %}
+                <p class="form-hint">Enter the keyword in any case. It will be displayed in UPPERCASE on the frontend.</p>
+            </div>
+            
+            {% if keyword %}
+            <div class="form-group">
+                <label class="form-label">Usage Count</label>
+                <div class="usage-count-display">
+                    <span class="count-badge">{{ keyword.usage_count }}</span>
+                    <span class="count-text">post{{ 's' if keyword.usage_count != 1 else '' }} using this keyword</span>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="form-actions">
+                {{ form.submit(class="btn btn-primary") }}
+                <a href="{{ url_for('admin_keywords') }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </div>
+    </form>
+    
+    <!-- Manage Posts Section (only for editing) -->
+    {% if keyword %}
+    <div class="form-module">
+        <h3>Manage Posts</h3>
+        <p class="section-description">Add or remove posts associated with this keyword.</p>
+        
+        <!-- Search Posts -->
+        <div class="search-container">
+            <input type="text" 
+                   id="post-search" 
+                   class="form-input" 
+                   placeholder="Search posts by title, author, or keywords..."
+                   autocomplete="off">
+            <div id="search-results" class="search-results" style="display: none;"></div>
+        </div>
+        
+        <!-- Associated Posts List -->
+        <div class="associated-posts">
+            <h4>Associated Posts (<span id="posts-count">{{ keyword.posts|length }}</span>)</h4>
+            <div id="posts-list" class="posts-list">
+                {% if keyword.posts %}
+                    {% for post in keyword.posts %}
+                    <div class="post-item" data-post-id="{{ post.id }}">
+                        <div class="post-info">
+                            <div class="post-title">{{ post.title }}</div>
+                            <div class="post-meta">{{ post.author }} • {{ post.publication_date.strftime('%b %d, %Y') if post.publication_date else 'N/A' }}</div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="removePost({{ post.id }})">Remove</button>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="empty-posts">
+                    <p>No posts associated with this keyword yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.keyword-form-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.keyword-form {
+    margin-bottom: 2rem;
+}
+
+.form-module {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.form-module h3 {
+    margin: 0 0 1.5rem 0;
+    color: var(--admin-primary);
+    font-size: 1.25rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--admin-text-light);
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--admin-primary);
+    box-shadow: 0 0 0 3px rgba(58, 116, 103, 0.1);
+}
+
+.form-hint {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--admin-text-light);
+}
+
+.error-message {
+    display: block;
+    margin-top: 0.5rem;
+    color: var(--admin-accent);
+    font-size: 0.875rem;
+}
+
+.usage-count-display {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.count-badge {
+    background: var(--admin-primary);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.count-text {
+    color: var(--admin-text-light);
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.section-description {
+    color: var(--admin-text-light);
+    margin-bottom: 1.5rem;
+}
+
+.search-container {
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 1000;
+    margin-top: 0.5rem;
+}
+
+.search-result-item {
+    padding: 1rem;
+    border-bottom: 1px solid var(--admin-border);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.search-result-item:hover {
+    background: rgba(58, 116, 103, 0.05);
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item.in-keyword {
+    background: rgba(58, 116, 103, 0.1);
+}
+
+.associated-posts h4 {
+    margin-bottom: 1rem;
+    color: var(--admin-text);
+}
+
+.posts-list {
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.post-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--admin-border);
+}
+
+.post-item:last-child {
+    border-bottom: none;
+}
+
+.post-info {
+    flex: 1;
+}
+
+.post-title {
+    font-weight: 600;
+    color: var(--admin-text);
+    margin-bottom: 0.25rem;
+}
+
+.post-meta {
+    font-size: 0.875rem;
+    color: var(--admin-text-light);
+}
+
+.empty-posts {
+    padding: 2rem;
+    text-align: center;
+    color: var(--admin-text-light);
+}
+</style>
+
+{% if keyword %}
+<script>
+const keywordId = {{ keyword.id }};
+let searchTimeout;
+
+// Search posts
+document.getElementById('post-search').addEventListener('input', function(e) {
+    clearTimeout(searchTimeout);
+    const query = e.target.value.trim();
+    
+    if (query.length < 2) {
+        document.getElementById('search-results').style.display = 'none';
+        return;
+    }
+    
+    searchTimeout = setTimeout(() => {
+        const url = `/api/posts/available-for-keyword?keyword_id=${keywordId}&search=${encodeURIComponent(query)}`;
+        console.log('Fetching:', url);
+        
+        fetch(url)
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Received data:', data);
+                if (data.error) {
+                    console.error('API error:', data.error);
+                    document.getElementById('search-results').innerHTML = 
+                        '<div class="search-result-item" style="color: red;">Error: ' + data.error + '</div>';
+                    document.getElementById('search-results').style.display = 'block';
+                } else {
+                    displaySearchResults(data.posts || []);
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                document.getElementById('search-results').innerHTML = 
+                    '<div class="search-result-item" style="color: red;">Error loading posts: ' + error.message + '</div>';
+                document.getElementById('search-results').style.display = 'block';
+            });
+    }, 300);
+});
+
+function displaySearchResults(posts) {
+    const resultsContainer = document.getElementById('search-results');
+    
+    if (posts.length === 0) {
+        resultsContainer.innerHTML = '<div class="search-result-item">No posts found</div>';
+        resultsContainer.style.display = 'block';
+        return;
+    }
+    
+    resultsContainer.innerHTML = posts.map(post => `
+        <div class="search-result-item ${post.in_keyword ? 'in-keyword' : ''}" 
+             onclick="togglePost(${post.id}, ${post.in_keyword})">
+            <div class="post-title">${post.title}</div>
+            <div class="post-meta">${post.author} • ${post.publication_date}</div>
+            ${post.in_keyword ? '<div style="color: var(--admin-primary); font-size: 0.875rem; margin-top: 0.25rem;">✓ Already associated</div>' : ''}
+        </div>
+    `).join('');
+    
+    resultsContainer.style.display = 'block';
+}
+
+function togglePost(postId, isInKeyword) {
+    const action = isInKeyword ? 'remove' : 'add';
+    
+    fetch(`/api/keyword/${keywordId}/posts`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            posts: [{
+                id: postId,
+                action: action
+            }]
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update posts list
+            updatePostsList(data.posts);
+            // Update usage count
+            document.getElementById('posts-count').textContent = data.usage_count;
+            // Clear search
+            document.getElementById('post-search').value = '';
+            document.getElementById('search-results').style.display = 'none';
+        } else {
+            alert('Error: ' + (data.error || 'Failed to update posts'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating posts');
+    });
+}
+
+function removePost(postId) {
+    if (!confirm('Remove this post from the keyword?')) return;
+    
+    togglePost(postId, true);
+}
+
+function updatePostsList(posts) {
+    const postsList = document.getElementById('posts-list');
+    
+    if (posts.length === 0) {
+        postsList.innerHTML = '<div class="empty-posts"><p>No posts associated with this keyword yet.</p></div>';
+        return;
+    }
+    
+    postsList.innerHTML = posts.map(post => `
+        <div class="post-item" data-post-id="${post.id}">
+            <div class="post-info">
+                <div class="post-title">${post.title}</div>
+                <div class="post-meta">${post.author} • ${post.publication_date}</div>
+            </div>
+            <button type="button" class="btn btn-sm btn-danger" onclick="removePost(${post.id})">Remove</button>
+        </div>
+    `).join('');
+}
+
+// Hide search results when clicking outside
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.search-container')) {
+        document.getElementById('search-results').style.display = 'none';
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

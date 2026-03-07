@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Inkstone - Authentic Creative Voices of Chinese Students Worldwide">
+    <title>Beyond the Filter Performance Script - Inkstone</title>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/static/style.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖋️</text></svg>">
+    
+    <!-- Preconnect for fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Meta tags for social sharing -->
+    <meta property="og:title" content="Inkstone - Authentic Creative Voices">
+    <meta property="og:description" content="Showcasing the vibrant stories of Chinese students worldwide">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/static/js/main.js" as="script">
+    <!-- Swiper CSS -->
+<link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+
+<!-- Swiper JS -->
+<script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+</head>
+<body>
+
+
+    <!-- Main Content -->
+    
+        
+    
+    
+    
+<!-- Article Container -->
+<div style="background-color: #F8F6F0; min-height: 100vh;">
+    <!-- Top Navigation -->
+    <header class="sticky top-0" style="z-index: 50; background-color: #F8F6F0; border-bottom: 1px solid #E6E3DB;">
+        <div class="mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <svg width="28" height="28" viewBox="0 0 64 64" class="rounded-xl" style="background-color: #FDFCF9;">
+                    <defs>
+                        <linearGradient id="inkwash-post" x1="0" x2="1">
+                            <stop offset="0%" stop-color="#3A7467" stop-opacity="0.9" />
+                            <stop offset="100%" stop-color="#7BAF9E" stop-opacity="0.6" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="32" cy="32" r="28" fill="url(#inkwash-post)" />
+                </svg>
+                <a href="/" class="text-2xl font-serif tracking-tight"
+                    style="color: #1A1A1A; text-decoration: none;">Inkstone</a>
+            </div>
+            <nav class="hidden md:flex items-center gap-6 text-sm" style="color: #444444;">
+                <a class="hover:underline" href="/#all-voices" style="color: #444444; text-decoration: none;">All Voices</a>
+                <a class="hover:underline" href="/explore-themes"
+                    style="color: #444444; text-decoration: none;">Explore the Themes</a>
+                <a href="/about" style="color: #444444; text-decoration: none;"
+                    class="hover:underline">About</a>
+            </nav>
+            <div class="hidden md:flex items-center gap-3">
+                <input placeholder="Search..." class="rounded-xl px-3 py-2 text-sm outline-none"
+                    style="background-color: #FDFCF9; border: 1px solid #E6E3DB; color: #444444;" />
+            </div>
+        </div>
+    </header>
+
+<article style="max-width: 900px; margin: 0 auto; padding: 1rem; background: white; border-radius: 20px; margin-top: 1rem; margin-bottom: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+    <!-- Dynamic Back Navigation -->
+    <nav style="margin-bottom: 3rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;">
+        <a href="#" id="return-button" style="display: inline-flex; align-items: center; gap: 0.75rem; color: var(--ink-mid); text-decoration: none; font-weight: 500; transition: all 0.3s ease; padding: 0.5rem 1rem; border-radius: 25px; background: rgba(58, 116, 103, 0.05);" class="hover:bg-accent-green hover:text-white">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15,18 9,12 15,6"></polyline>
+            </svg>
+            <span id="return-text">Return</span>
+        </a>
+    </nav>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const returnButton = document.getElementById('return-button');
+        const returnText = document.getElementById('return-text');
+        
+        // Check if there's a previous page in history
+        if (document.referrer) {
+            const referrer = new URL(document.referrer);
+            const currentHost = window.location.host;
+            
+            // Only use referrer if it's from the same site
+            if (referrer.host === currentHost) {
+                if (referrer.pathname.includes('/theme/')) {
+                    returnText.textContent = 'Back to Theme';
+                } else if (referrer.pathname === '/' && referrer.hash === '#all-voices') {
+                    returnText.textContent = 'Back to All Voices';
+                } else {
+                    returnText.textContent = 'Back';
+                }
+                
+                returnButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.history.back();
+                });
+            } else {
+                // Fallback to All Voices if referrer is external
+                returnText.textContent = 'Back to All Voices';
+                returnButton.href = '/#all-voices';
+            }
+        } else {
+            // No referrer, default to All Voices
+            returnText.textContent = 'Back to All Voices';
+            returnButton.href = '/#all-voices';
+        }
+    });
+    </script>
+    
+    <!-- Article Header -->
+    <header style="margin-bottom: 4rem; text-align: center; padding: 0 2rem;">
+        <!-- Keywords -->
+        
+        <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2rem;">
+            
+            
+            
+            <span style="background: #C94C4C; color: white; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                tedx
+            </span>
+            
+        </div>
+        
+        
+        <h1 style="font-family: 'Crimson Text', serif; font-size: 3rem; font-weight: 700; color: var(--ink-deep); margin-bottom: 1.5rem; line-height: 1.2; max-width: 800px; margin-left: auto; margin-right: auto;">
+            Beyond the Filter Performance Script
+        </h1>
+        
+        <!-- Meta Information -->
+        <div style="display: flex; justify-content: center; align-items: center; gap: 1.5rem; margin-bottom: 2rem; color: var(--ink-mid); font-size: 1rem; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent-green), var(--accent-mint)); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 1.1rem;">
+                    A
+                </div>
+                <span style="font-weight: 600;">Apple Wang</span>
+                
+            </div>
+            <span style="color: #d1d5db;">•</span>
+            <span>October 31, 2025</span>
+            
+        </div>
+        
+        <!-- Abstract -->
+        
+        <div style="font-size: 1.3rem; color: var(--ink-mid); line-height: 1.6; font-style: italic; max-width: 700px; margin: 0 auto; padding: 2rem; background: linear-gradient(135deg, rgba(58, 116, 103, 0.02), rgba(123, 175, 158, 0.02)); border-radius: 16px; border-left: 4px solid var(--accent-green);">
+            Behind every perfect post lies a messy truth—and Apple’s here to talk about it. She will be revealing the social cost of social media&#39;s polished illusions. Abstract adopted from TEDX Youtube 
+        </div>
+        
+    </header>
+    
+    <!-- Video Content -->
+    
+    <section style="margin-bottom: 4rem;">
+        <div style="position: relative; width: 100%; height: 0; padding-bottom: 56.25%; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);">
+            
+            <iframe src="https://www.youtube.com/embed/iw9jxLw7LZw" 
+                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" 
+                    frameborder="0" 
+                    allowfullscreen>
+            </iframe>
+        </div>
+    </section>
+    
+    
+    <!-- Gallery Content -->
+    
+    
+    <!-- Article Content -->
+    <section style="max-width: 700px; margin: 0 auto; padding: 0 1rem;">
+        <div style="line-height: 1.8; color: var(--ink); font-size: 1.1rem;">
+            
+                <p><br></p>
+            
+        </div>
+    </section>
+    
+    <!-- Series Table of Contents -->
+    
+    <section style="max-width: 700px; margin: 3rem auto 0; padding: 0 1rem;">
+        <div style="background: linear-gradient(135deg, rgba(123, 175, 158, 0.08), rgba(58, 116, 103, 0.05)); border-radius: 16px; padding: 2rem; border: 1px solid rgba(58, 116, 103, 0.15);">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h3 style="font-family: 'Crimson Text', serif; font-size: 1.6rem; color: var(--accent-green); margin-bottom: 0.5rem; font-weight: 700;">
+                    📚 BJ80 TEDX 2025
+                </h3>
+                
+                <p style="color: var(--ink-mid); font-size: 1rem; margin: 0;">
+                    This series is a collection of all the TEDX speeches made at the 2025 TEDX Event at Beijing No.80 High School International Department.
+                </p>
+                
+            </div>
+            
+            <div style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                <h4 style="color: var(--ink-deep); margin-bottom: 1.5rem; font-size: 1.1rem; font-weight: 600; text-align: center;">
+                    Table of Contents
+                </h4>
+                
+                <ol style="list-style: none; padding: 0; margin: 0; counter-reset: series-counter;">
+                    
+                    <li style="counter-increment: series-counter; margin-bottom: 0.75rem;">
+                        
+                        <!-- Other posts - clickable -->
+                        <a href="/standing-out-in-a-global-world" 
+                           style="display: flex; align-items: center; padding: 1rem; background: #f8f9fa; border-radius: 8px; text-decoration: none; color: var(--ink); transition: all 0.3s ease; border: 1px solid #e9ecef;"
+                           onmouseover="this.style.background='#e9ecef'; this.style.transform='translateX(4px)'"
+                           onmouseout="this.style.background='#f8f9fa'; this.style.transform='translateX(0)'">
+                            <div style="width: 32px; height: 32px; background: var(--accent-green); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 1rem; flex-shrink: 0;">
+                                1
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; font-size: 1rem; color: var(--ink-deep);">
+                                    Standing Out in a Global World
+                                </div>
+                                <div style="font-size: 0.85rem; color: var(--ink-mid); margin-top: 0.25rem;">
+                                    by April Xu
+                                </div>
+                            </div>
+                            <div style="color: var(--accent-green); font-size: 1.2rem;">
+                                →
+                            </div>
+                        </a>
+                        
+                    </li>
+                    
+                    <li style="counter-increment: series-counter; margin-bottom: 0.75rem;">
+                        
+                        <!-- Other posts - clickable -->
+                        <a href="/redefining-youth-identity-in-a-meritocratic-society" 
+                           style="display: flex; align-items: center; padding: 1rem; background: #f8f9fa; border-radius: 8px; text-decoration: none; color: var(--ink); transition: all 0.3s ease; border: 1px solid #e9ecef;"
+                           onmouseover="this.style.background='#e9ecef'; this.style.transform='translateX(4px)'"
+                           onmouseout="this.style.background='#f8f9fa'; this.style.transform='translateX(0)'">
+                            <div style="width: 32px; height: 32px; background: var(--accent-green); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 1rem; flex-shrink: 0;">
+                                2
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; font-size: 1rem; color: var(--ink-deep);">
+                                    Redefining Youth Identity in a Meritocratic Society
+                                </div>
+                                <div style="font-size: 0.85rem; color: var(--ink-mid); margin-top: 0.25rem;">
+                                    by Arlene Wang
+                                </div>
+                            </div>
+                            <div style="color: var(--accent-green); font-size: 1.2rem;">
+                                →
+                            </div>
+                        </a>
+                        
+                    </li>
+                    
+                    <li style="counter-increment: series-counter; margin-bottom: 0.75rem;">
+                        
+                        <!-- Other posts - clickable -->
+                        <a href="/is-music-still-a-bridge-" 
+                           style="display: flex; align-items: center; padding: 1rem; background: #f8f9fa; border-radius: 8px; text-decoration: none; color: var(--ink); transition: all 0.3s ease; border: 1px solid #e9ecef;"
+                           onmouseover="this.style.background='#e9ecef'; this.style.transform='translateX(4px)'"
+                           onmouseout="this.style.background='#f8f9fa'; this.style.transform='translateX(0)'">
+                            <div style="width: 32px; height: 32px; background: var(--accent-green); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 1rem; flex-shrink: 0;">
+                                3
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; font-size: 1rem; color: var(--ink-deep);">
+                                    Is Music Still A Bridge?
+                                </div>
+                                <div style="font-size: 0.85rem; color: var(--ink-mid); margin-top: 0.25rem;">
+                                    by Daisy Hu | Iris Wen
+                                </div>
+                            </div>
+                            <div style="color: var(--accent-green); font-size: 1.2rem;">
+                                →
+                            </div>
+                        </a>
+                        
+                    </li>
+                    
+                    <li style="counter-increment: series-counter; margin-bottom: 0.75rem;">
+                        
+                        <!-- Other posts - clickable -->
+                        <a href="/open-mindedness" 
+                           style="display: flex; align-items: center; padding: 1rem; background: #f8f9fa; border-radius: 8px; text-decoration: none; color: var(--ink); transition: all 0.3s ease; border: 1px solid #e9ecef;"
+                           onmouseover="this.style.background='#e9ecef'; this.style.transform='translateX(4px)'"
+                           onmouseout="this.style.background='#f8f9fa'; this.style.transform='translateX(0)'">
+                            <div style="width: 32px; height: 32px; background: var(--accent-green); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 1rem; flex-shrink: 0;">
+                                4
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; font-size: 1rem; color: var(--ink-deep);">
+                                    Open Mindedness
+                                </div>
+                                <div style="font-size: 0.85rem; color: var(--ink-mid); margin-top: 0.25rem;">
+                                    by Richard Xing
+                                </div>
+                            </div>
+                            <div style="color: var(--accent-green); font-size: 1.2rem;">
+                                →
+                            </div>
+                        </a>
+                        
+                    </li>
+                    
+                    <li style="counter-increment: series-counter; margin-bottom: 0.75rem;">
+                        
+                        <!-- Current post - highlighted -->
+                        <div style="display: flex; align-items: center; padding: 1rem; background: linear-gradient(135deg, var(--accent-green), var(--accent-mint)); border-radius: 8px; color: white; position: relative;">
+                            <div style="width: 32px; height: 32px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 1rem; flex-shrink: 0;">
+                                5
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem;">
+                                    Beyond the Filter Performance Script
+                                </div>
+                                <div style="font-size: 0.85rem; opacity: 0.9;">
+                                    You are here
+                                </div>
+                            </div>
+                            <div style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); font-size: 1.2rem;">
+                                📍
+                            </div>
+                        </div>
+                        
+                    </li>
+                    
+                </ol>
+                
+                <div style="text-align: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e9ecef;">
+                    <p style="color: var(--ink-mid); font-size: 0.9rem; margin: 0;">
+                        5 posts in this series
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    
+    <!-- Article Footer -->
+    <footer style="margin-top: 5rem; padding: 3rem 2rem; background: linear-gradient(135deg, rgba(58, 116, 103, 0.02), rgba(123, 175, 158, 0.02)); border-radius: 20px; text-align: center;">
+        <h3 style="font-family: 'Crimson Text', serif; font-size: 1.8rem; color: var(--ink-deep); margin-bottom: 1rem;">
+            Inspired by this story?
+        </h3>
+        <p style="color: var(--ink-mid); margin-bottom: 2rem; font-size: 1.1rem;">
+            Share your own voice with the world or discover more amazing stories from young creators.
+        </p>
+        <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+            <a href="/our_voices_all" class="btn btn-primary">
+                Explore More Stories
+            </a>
+            <a href="/our_voices_all" class="btn" style="background: rgba(58, 116, 103, 0.1); color: var(--accent-green); border: 2px solid var(--accent-green);">
+                Read More Stories
+            </a>
+        </div>
+    </footer>
+</article>
+
+<!-- Slideshow JavaScript -->
+
+
+<!-- Image Zoom JavaScript -->
+<script>
+function openImageZoom(imageSrc, imageAlt) {
+    const modal = document.getElementById('image-zoom-modal');
+    const zoomImage = document.getElementById('zoom-image');
+    const imageNameElement = document.getElementById('zoom-image-name');
+    
+    zoomImage.src = imageSrc;
+    imageNameElement.textContent = imageAlt || 'Image';
+    
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    
+    // Fade in animation
+    setTimeout(() => {
+        modal.style.opacity = '1';
+    }, 10);
+}
+
+function closeImageZoom() {
+    const modal = document.getElementById('image-zoom-modal');
+    
+    // Fade out animation
+    modal.style.opacity = '0';
+    setTimeout(() => {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }, 300);
+}
+
+// Enhanced keyboard navigation
+document.addEventListener('keydown', function(e) {
+    const modal = document.getElementById('image-zoom-modal');
+    if (modal.style.display === 'block') {
+        switch(e.key) {
+            case 'Escape':
+                closeImageZoom();
+                break;
+            case ' ':
+            case 'Enter':
+                e.preventDefault();
+                closeImageZoom();
+                break;
+        }
+    }
+});
+
+// Show zoom indicator on hover
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.waterfall-image-container').forEach(container => {
+        const indicator = container.querySelector('.zoom-indicator');
+        
+        container.addEventListener('mouseenter', () => {
+            if (indicator) indicator.style.opacity = '1';
+        });
+        
+        container.addEventListener('mouseleave', () => {
+            if (indicator) indicator.style.opacity = '0';
+        });
+    });
+});
+</script>
+
+<!-- Image Zoom Styles -->
+<style>
+.waterfall-image-container {
+    position: relative;
+}
+
+.waterfall-image-container:hover {
+    transform: scale(1.02) !important;
+}
+
+.zoom-indicator {
+    transition: all 0.3s ease;
+}
+
+#image-zoom-modal {
+    backdrop-filter: blur(5px);
+}
+
+#zoom-image {
+    transition: all 0.3s ease;
+    cursor: zoom-out;
+}
+
+@media (max-width: 768px) {
+    .waterfall-gallery {
+        column-count: 1 !important;
+    }
+    
+    #image-zoom-modal {
+        padding: 20px !important;
+    }
+    
+    #zoom-image {
+        max-width: 100% !important;
+        max-height: 90% !important;
+    }
+}
+
+@media (max-width: 1024px) {
+    .waterfall-gallery {
+        column-count: 2 !important;
+    }
+}
+</style>
+
+<!-- Image Zoom Modal -->
+<div id="image-zoom-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; cursor: pointer; opacity: 0; transition: opacity 0.3s ease;" onclick="closeImageZoom()">
+    <div style="position: absolute; top: 20px; right: 20px; z-index: 10001;">
+        <button onclick="closeImageZoom()" style="background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; font-size: 1.5rem; backdrop-filter: blur(10px);">
+            ×
+        </button>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 40px;">
+        <img id="zoom-image" src="" alt="" style="max-width: 95%; max-height: 95%; object-fit: contain; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);" onclick="event.stopPropagation()">
+    </div>
+    <!-- Image info -->
+    <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 1rem 2rem; border-radius: 25px; backdrop-filter: blur(10px);">
+        <span id="zoom-image-name"></span>
+    </div>
+</div>
+</div>
+
+
+    <!-- Footer -->
+    <footer id="about" class="mt-10">
+        <div class="mx-auto max-w-7xl px-4 py-10 grid md:grid-cols-3 gap-6">
+            <div>
+                <div class="text-xl font-serif mb-2" style="color: #1A1A1A;">About Inkstone</div>
+                <p class="text-sm" style="color: #777777;">
+                    Student-made magazine showcasing Chinese culture through articles, photography, and video. Independent, plural, and proudly hybrid.
+                </p>
+            </div>
+            <div>
+                <div class="text-xl font-serif mb-2" style="color: #1A1A1A;">Sections</div>
+                <ul class="space-y-2 text-sm" style="color: #444444;">
+                    <li><a href="/#all-voices" style="color: #444444; text-decoration: none;" class="hover:underline">All Voices</a></li>
+                    <li><a href="/explore-themes" style="color: #444444; text-decoration: none;" class="hover:underline">Explore the Themes</a></li>
+                    <li><a href="/about" style="color: #444444; text-decoration: none;" class="hover:underline">About</a></li>
+                </ul>
+            </div>
+            <div>
+                <div class="text-xl font-serif mb-2" style="color: #1A1A1A;">Follow</div>
+                <div class="flex gap-3 text-sm" style="color: #444444;">
+                    <a class="px-3 py-2 rounded-xl card-shadow" style="background-color: #FDFCF9; text-decoration: none; color: inherit;">Bilibili</a>
+                    <a class="px-3 py-2 rounded-xl card-shadow" style="background-color: #FDFCF9; text-decoration: none; color: inherit;">Xiaohongshu</a>
+                    <a class="px-3 py-2 rounded-xl card-shadow" style="background-color: #FDFCF9; text-decoration: none; color: inherit;">YouTube</a>
+                    <a class="px-3 py-2 rounded-xl card-shadow" style="background-color: #FDFCF9; text-decoration: none; color: inherit;">Instagram</a>
+                </div>
+            </div>
+        </div>
+        <div class="text-center text-xs py-6" style="color: #777777; border-top: 1px solid #E6E3DB;">
+            © 2024 Inkstone Magazine. All rights reserved.
+        </div>
+    </footer>
+
+    <!-- Simple JavaScript -->
+    <script>
+        // Smooth scrolling for anchor links
+        document.addEventListener('DOMContentLoaded', function() {
+            const links = document.querySelectorAll('a[href^="#"]');
+            links.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

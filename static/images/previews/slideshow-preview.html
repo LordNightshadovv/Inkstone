@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slideshow Template Preview - Immersive Slideshow</title>
+    <style>
+        :root {
+            --primary-color: #2c5aa0;
+            --secondary-color: #1a365d;
+            --accent-color: #4a90e2;
+            --light-text-color: #ffffff;
+            --dark-text-color: #2d3748;
+            --background-color: #f7fafc;
+            --text-muted: #718096;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--background-color);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .preview-container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .slideshow-section {
+            position: relative;
+            height: 400px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background-image: 
+                radial-gradient(circle at 25% 75%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 25%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .slide-placeholder {
+            width: 85%;
+            height: 85%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .nav-arrow:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .nav-arrow.left {
+            left: 20px;
+        }
+        
+        .nav-arrow.right {
+            right: 20px;
+        }
+        
+        .nav-arrow svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+        
+        .pagination-dots {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+        
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .dot.active {
+            background: white;
+            transform: scale(1.3);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        
+        .text-section {
+            padding: 2.5rem;
+            background: white;
+        }
+        
+        .text-section h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark-text-color);
+            margin-bottom: 1.2rem;
+            text-align: left;
+            line-height: 1.3;
+        }
+        
+        .text-section p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+            text-align: left;
+            margin-bottom: 1rem;
+        }
+        
+        .author-info {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .author-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: left;
+        }
+        
+        .image-icon {
+            width: 56px;
+            height: 56px;
+            opacity: 0.7;
+        }
+        
+        .image-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: white;
+        }
+        
+        @media (max-width: 768px) {
+            .preview-container {
+                margin: 1rem;
+                max-width: calc(100% - 2rem);
+            }
+            
+            .slideshow-section {
+                height: 300px;
+            }
+            
+            .text-section {
+                padding: 2rem;
+            }
+            
+            .text-section h1 {
+                font-size: 1.6rem;
+            }
+            
+            .text-section p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="preview-container">
+        <div class="slideshow-section">
+            <div class="slide-placeholder">
+                <div class="image-icon">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <polyline points="21,15 16,10 5,21"/>
+                    </svg>
+                </div>
+            </div>
+            
+            <div class="nav-arrow left">
+                <svg viewBox="0 0 24 24">
+                    <polyline points="15,18 9,12 15,6"/>
+                </svg>
+            </div>
+            
+            <div class="nav-arrow right">
+                <svg viewBox="0 0 24 24">
+                    <polyline points="9,18 15,12 9,6"/>
+                </svg>
+            </div>
+            
+            <div class="pagination-dots">
+                <div class="dot active"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
+        
+        <div class="text-section">
+            <h1>Modern Calligraphy</h1>
+            <p>Interview with a young calligrapher exploring modern interpretations of traditional Chinese writing. Every stroke tells a story of heritage and innovation.</p>
+            <p>In my work, I blend thousand-year-old techniques with contemporary themes, creating pieces that speak to both tradition and the future.</p>
+            <div class="author-info">
+                <div class="author-name">Chen Yutong</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

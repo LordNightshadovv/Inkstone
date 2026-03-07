@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page.title }} - Inkstone{% endblock %}
+
+{% block content %}
+<div class="animate-fadeIn min-h-screen bg-ink-cream py-12 px-4 sm:px-6 lg:px-8">
+    <article class="max-w-3xl mx-auto bg-white p-8 md:p-16 rounded-sm shadow-sm border border-gray-100">
+        <!-- Page Header -->
+        <header class="text-center mb-12 pb-8 border-b border-gray-100">
+            <h1 class="text-3xl md:text-5xl font-serif font-black text-ink-dark mb-4 leading-tight">
+                {{ page.title }}
+            </h1>
+
+            {% if page.title == 'About Us' %}
+            <p class="text-lg text-gray-500 font-serif italic max-w-xl mx-auto">
+                Discover the story behind Inkstone, our mission, and our vision.
+            </p>
+            {% endif %}
+        </header>
+
+        <!-- Page Content -->
+        <div class="prose prose-lg prose-ink max-w-none font-serif text-gray-800 leading-loose">
+            {{ page.content|safe }}
+        </div>
+
+        <!-- Optional Footer for specific pages -->
+        {% if page.title == 'About Us' %}
+        <footer class="mt-16 pt-12 border-t border-gray-100">
+            <!-- Team Section -->
+            <section class="mb-12">
+                <h2 class="text-2xl font-bold font-serif text-ink-dark mb-8 text-center">Our Team</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="text-center p-6 bg-gray-50 rounded-sm">
+                        <div
+                            class="w-16 h-16 bg-gradient-to-br from-ink-main to-ink-mint rounded-full mx-auto mb-4 flex items-center justify-center text-2xl shadow-sm">
+                            👩‍💻
+                        </div>
+                        <h3 class="font-bold text-ink-dark mb-2">Founding Team</h3>
+                        <p class="text-sm text-gray-600">Global students connecting through stories</p>
+                    </div>
+
+                    <div class="text-center p-6 bg-gray-50 rounded-sm">
+                        <div
+                            class="w-16 h-16 bg-gradient-to-br from-ink-brick to-orange-400 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl shadow-sm">
+                            ✍️
+                        </div>
+                        <h3 class="font-bold text-ink-dark mb-2">Editorial</h3>
+                        <p class="text-sm text-gray-600">Curating authentic voices</p>
+                    </div>
+
+                    <div class="text-center p-6 bg-gray-50 rounded-sm">
+                        <div
+                            class="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl shadow-sm">
+                            🎨
+                        </div>
+                        <h3 class="font-bold text-ink-dark mb-2">Design</h3>
+                        <p class="text-sm text-gray-600">Visual storytelling</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Contact Section -->
+            <section class="bg-ink-cream p-8 rounded-sm text-center border border-gray-100">
+                <h2 class="text-2xl font-bold font-serif text-ink-dark mb-8">Contact Us</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-2xl mx-auto">
+                    <div>
+                        <h4 class="font-bold text-ink-dark mb-2 text-sm uppercase tracking-wider">Email</h4>
+                        <a href="mailto:contact@inkstone.example.com" class="text-ink-main hover:underline">
+                            contact@inkstone.example.com
+                        </a>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-ink-dark mb-2 text-sm uppercase tracking-wider">WeChat</h4>
+                        <span class="text-gray-600">InkstoneOfficial</span>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-ink-dark mb-2 text-sm uppercase tracking-wider">Weibo</h4>
+                        <a href="#" class="text-ink-main hover:underline">
+                            @Inkstone
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </footer>
+        {% endif %}
+    </article>
+</div>
+{% endblock %}
