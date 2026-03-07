@@ -28,8 +28,8 @@ export FLASK_APP=app.py
 # 4. Run database upgrade
 # This uses Flask-Migrate (Alembic) to only apply schema updates as defined in your migrations folder.
 # It does NOT overwrite content data.
-echo "Applying database schema upgrades..."
-flask db upgrade
+echo "Applying database schema upgrades (using python3 -m flask)..."
+python3 -m flask db upgrade
 
 # 5. Verification and next steps
 if [ $? -eq 0 ]; then
@@ -41,6 +41,9 @@ if [ $? -eq 0 ]; then
     echo " e.g., 'sudo systemctl restart gunicorn' or whatever process manager you are using."
     echo "==============================================="
 else
-    echo "❌ Error: Database migration failed. Please review the error outputs above."
+    echo "❌ Error: 'flask' command or 'db' extension not found."
+    echo "Try running these on your server first:"
+    echo "    source venv/bin/activate"
+    echo "    pip install -r requirements.txt"
     exit 1
 fi
