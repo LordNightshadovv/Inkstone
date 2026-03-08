@@ -1,0 +1,190 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}Subscribers Management{% endblock %}
+
+{% block header_actions %}
+<!-- No primary action needed for subscribers yet, but could be Export CSV in future -->
+{% endblock %}
+
+{% block content %}
+<div class="animate-fadeIn">
+
+    <!-- Filters Toolbar -->
+    <div class="toolbar"
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; background: white; padding: 1rem; border-radius: 8px; border: 1px solid #e5e7eb; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+        <div class="search-input" style="position: relative; flex: 1; max-width: 400px;">
+            <i data-lucide="search" class="search-icon"
+                style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: #9ca3af;"></i>
+            <input type="text" id="sub-search" placeholder="Search by email or IP..." onkeyup="filterSubscribers()"
+                style="width: 100%; padding: 0.5rem 1rem 0.5rem 2.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+        </div>
+        <div style="display: flex; gap: 0.5rem; color: var(--gray-500); font-size: 0.875rem; align-items: center;">
+            <i data-lucide="info" style="width: 16px; height: 16px;"></i>
+            Total: {{ subscribers|length }} subscribers
+        </div>
+    </div>
+
+    {% if subscribers %}
+    <div class="series-list-container">
+        <table class="series-table">
+            <thead>
+                <tr>
+                    <th style="width: 60px;">ID</th>
+                    <th>Email Address</th>
+                    <th>IP Address</th>
+                    <th>Country</th>
+                    <th>Subscribed On</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sub in subscribers %}
+                <tr>
+                    <td style="color: var(--gray-500);">#{{ sub.id }}</td>
+                    <td>
+                        <div style="font-weight: 600; font-size: 1rem; color: var(--ink-dark);">{{ sub.email }}</div>
+                    </td>
+                    <td>
+                        <code
+                            style="font-size: 0.85rem; background-color: var(--gray-50); padding: 2px 6px; border-radius: 4px; color: var(--gray-700);">
+                            {{ sub.ip_address if sub.ip_address else 'Unknown' }}
+                        </code>
+                    </td>
+                    <td>
+                        {% if sub.country %}
+                        <span style="display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-lucide="globe" style="width: 14px; height: 14px; color: var(--gray-400);"></i>
+                            {{ sub.country }}
+                        </span>
+                        {% else %}
+                        <span style="color: var(--gray-400);">N/A</span>
+                        {% endif %}
+                    </td>
+                    <td style="color: var(--gray-600);">
+                        {{ sub.created_at.strftime('%b %d, %Y') }}
+                        <div style="font-size: 0.75rem; color: var(--gray-400);">{{ sub.created_at.strftime('%H:%M:%S')
+                            }}</div>
+                    </td>
+                    <td style="text-align: right;">
+                        <button onclick="deleteSubscriber(event, {{ sub.id }}, '{{ sub.email }}')"
+                            class="btn btn-sm btn-icon btn-danger-outline" title="Delete">
+                            <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i data-lucide="mail-search" style="width: 64px; height: 64px; color: var(--gray-300);"></i>
+        </div>
+        <h3 style="font-family: var(--font-serif); font-size: 1.5rem; color: var(--gray-800); margin-bottom: 0.5rem;">No
+            Subscribers Yet</h3>
+        <p style="color: var(--gray-500); margin-bottom: 2rem;">When readers subscribe via the newsletter forms, they
+            will appear here.</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function filterSubscribers() {
+        const input = document.getElementById('sub-search');
+        const filter = input.value.toLowerCase();
+        const tbody = document.querySelector('.series-table tbody');
+        const rows = tbody.getElementsByTagName('tr');
+
+        for (let row of rows) {
+            const email = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            const ip = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+            const country = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
+
+            if (email.includes(filter) || ip.includes(filter) || country.includes(filter)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    }
+
+    function deleteSubscriber(event, subId, email) {
+        event.stopPropagation();
+        if (confirm(`Are you sure you want to remove ${email} from the subscribers list?`)) {
+            fetch(`/admin/subscribers/${subId}/delete`, {
+                method: 'POST'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Failed to delete subscriber: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    alert('Error deleting subscriber');
+                });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        lucide.createIcons();
+    });
+</script>
+
+<style>
+    /* Reuse table styles from global or series list */
+    .series-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+    }
+
+    .series-table th {
+        background: #f9fafb;
+        padding: 0.75rem 1rem;
+        text-align: left;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #6b7280;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .series-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #f3f4f6;
+        vertical-align: middle;
+    }
+
+    .series-table tr:hover {
+        background-color: #f9fafb;
+    }
+
+    .btn-icon {
+        padding: 0.25rem;
+        border-radius: 4px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .btn-danger-outline {
+        color: #9ca3af;
+    }
+
+    .btn-danger-outline:hover {
+        color: var(--danger);
+        background-color: rgba(239, 68, 68, 0.1);
+    }
+</style>
+{% endblock %}

@@ -411,18 +411,6 @@ class Protagonist(db.Model):
     def __repr__(self):
         return f'<Protagonist {self.name}>'
 
-# Database model for Our Community cards
-class CommunityCard(db.Model):
-    """Model for Our Community section cards."""
-    id = db.Column(db.Integer, primary_key=True)
-    title_html = db.Column(db.Text, nullable=False)  # Rich text HTML
-    body_html = db.Column(db.Text, nullable=False)   # Rich text HTML
-    display_order = db.Column(db.Integer, nullable=False, default=0)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    def __repr__(self):
-        return f'<CommunityCard {self.id}>'
 
 # Database model for multi-modal posts
 class Post(db.Model):
@@ -545,11 +533,13 @@ class WebsiteAnalytics(db.Model):
 class Subscriber(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
+    ip_address = db.Column(db.String(45), nullable=True)
+    country = db.Column(db.String(100), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
 
     def __repr__(self):
-        return f'<Subscriber {self.email}>'
+        return f'<Subscriber {self.email} from {self.ip_address}>'
 
 # Database model for slogan background pictures
 class SloganBackground(db.Model):
@@ -2800,24 +2790,85 @@ def delete_slogan_background(bg_id):
         db.session.rollback()
         return {'error': str(e)}, 500
 
+# --- Subscriber Management Routes ---
+
+@app.route('/admin/subscribers')
+def admin_subscribers():
+    """Management view for table subscribers."""
+    if 'admin_logged_in' not in session:
+        return redirect(url_for('login'))
+    
+    # Fetch all subscribers order by date descending
+    subscribers = Subscriber.query.order_by(Subscriber.created_at.desc()).all()
+    return render_template('admin/subscriber_list.html', subscribers=subscribers)
+
+@app.route('/admin/subscribers/<int:sub_id>/delete', methods=['POST'])
+def delete_subscriber(sub_id):
+    """Delete a subscriber."""
+    if 'admin_logged_in' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+    
+    try:
+        sub = Subscriber.query.get_or_404(sub_id)
+        db.session.delete(sub)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # --- Public Interface Routes ---
 
 @app.route('/subscribe', methods=['POST'])
 def subscribe():
-    """Handle newsletter subscription."""
+    """Handle newsletter subscription with IP tracking and update logic."""
     data = request.get_json()
     email = data.get('email')
+    confirm_update = data.get('confirm', False)
     
     if not email or '@' not in email:
         return jsonify({'error': 'Invalid email address'}), 400
     
     try:
-        # Check if already subscribed
-        existing = Subscriber.query.filter_by(email=email).first()
-        if existing:
-            return jsonify({'success': True, 'message': 'You are already subscribed!'})
+        ip = get_client_ip()
         
-        subscriber = Subscriber(email=email)
+        # 1. Check if this IP is already associated with an email
+        existing_by_ip = Subscriber.query.filter_by(ip_address=ip).first()
+        
+        if existing_by_ip:
+            # If it's the same email, just say they are already subscribed
+            if existing_by_ip.email == email:
+                return jsonify({'success': True, 'message': 'You are already subscribed!'})
+            
+            # If it's a different email, we ask for confirmation unless they already confirmed
+            if not confirm_update:
+                return jsonify({
+                    'success': False, 
+                    'conflict': True, 
+                    'message': 'You have already subscribed. Confirm if you want to update your email.'
+                })
+            
+            # Update the email for this IP
+            # Check if the new email is already taken by ANOTHER record (not very likely with one-IP-one-email rule but good to check)
+            other_with_email = Subscriber.query.filter(Subscriber.email == email, Subscriber.ip_address != ip).first()
+            if other_with_email:
+                return jsonify({'error': 'This email is already associated with another subscription.'}), 400
+                
+            existing_by_ip.email = email
+            existing_by_ip.created_at = datetime.utcnow() # Update subscription time
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Your email has been updated!'})
+
+        # 2. Check if the email itself exists (from a different IP maybe)
+        existing_by_email = Subscriber.query.filter_by(email=email).first()
+        if existing_by_email:
+            # Update IP and country if they moved or something? Or just say subscribed.
+            # For now, let's keep it simple: if email exists, they are subscribed.
+            return jsonify({'success': True, 'message': 'This email is already subscribed!'})
+        
+        # 3. New subscription
+        country = get_country_from_ip(ip)
+        subscriber = Subscriber(email=email, ip_address=ip, country=country)
         db.session.add(subscriber)
         db.session.commit()
         
@@ -3065,9 +3116,7 @@ def our_voices_partial():
 def about():
     # Get all active themes for the What We Publish section
     themes = Theme.query.filter_by(is_active=True).all()
-    # Get community cards for Our Community section
-    community_cards = CommunityCard.query.order_by(CommunityCard.display_order).all()
-    return render_template('about.html', themes=themes, community_cards=community_cards)
+    return render_template('about.html', themes=themes)
 
 @app.route('/explore-themes')
 def explore_themes():

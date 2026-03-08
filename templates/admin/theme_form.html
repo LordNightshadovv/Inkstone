@@ -32,6 +32,20 @@
         background: #111;
         position: relative;
         overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+        min-height: 0;
+    }
+
+    .cropper-image-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
     }
 
     .cropper-footer {
@@ -42,6 +56,8 @@
         background: #fff;
         position: relative;
         border-top: 2px solid #ddd;
+        flex-shrink: 0;
+        /* don't allow buttons to be squeezed */
     }
 
     .cropper-btn-group {
@@ -412,7 +428,7 @@
 <div id="cropperModal" class="cropper-modal">
     <div class="cropper-content">
         <div class="cropper-body">
-            <div class="h-full flex items-center justify-center">
+            <div class="cropper-image-container">
                 <img id="cropperImage" src="" style="max-width: 100%; max-height: 100%; display: block;">
             </div>
         </div>
@@ -501,7 +517,7 @@
 
             cropper = new Cropper(cropperImage, {
                 aspectRatio: aspectRatio,
-                viewMode: 0,
+                viewMode: 1, // Restricted to the canvas, but canvas can be smaller than container
                 dragMode: 'move',
                 autoCropArea: 0.8,
                 restore: false,
@@ -511,6 +527,8 @@
                 cropBoxMovable: false,
                 cropBoxResizable: false,
                 toggleDragModeOnDblclick: false,
+                minZoomRatio: 0.01, // allow zooming way out
+                maxZoomRatio: 10,   // allow zooming way in
             });
         }
 

@@ -243,13 +243,14 @@
                 <div class="col-span-1 md:col-span-1">
                     <h4 class="font-bold uppercase tracking-wider text-ink-mint text-sm mb-6">Stay Connected</h4>
                     <p class="text-sm text-gray-300 mb-4">Get the latest stories in your inbox.</p>
-                    <form class="flex flex-col space-y-2" onsubmit="event.preventDefault(); alert('Subscribed!');">
-                        <input type="email" placeholder="Your email address"
+                    <form id="footer-subscribe-form" class="flex flex-col space-y-2">
+                        <input type="email" name="email" placeholder="Your email address" required
                             class="bg-white/10 border border-white/20 text-white placeholder-gray-400 px-4 py-2 rounded-sm focus:outline-none focus:border-ink-light text-sm" />
-                        <button
+                        <button type="submit"
                             class="bg-ink-brick hover:bg-red-600 text-white font-bold py-2 px-4 rounded-sm transition-colors text-sm uppercase tracking-wide">
                             Subscribe
                         </button>
+                        <p id="footer-subscribe-message" class="text-xs font-medium hidden mt-1"></p>
                     </form>
                 </div>
 
@@ -372,48 +373,75 @@
         if (subscribeBtn) subscribeBtn.addEventListener('click', toggleSubscribe);
         if (closeSubscribe) closeSubscribe.addEventListener('click', toggleSubscribe);
 
-        // Subscribe Form Submission
-        subscribeForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-            const email = this.email.value;
-            const btn = this.querySelector('button');
-            const originalText = btn.textContent;
-
-            btn.disabled = true;
-            btn.textContent = 'Subscribing...';
+        // Centralized Subscribe submission
+        function submitSubscribe(email, confirmUpdate = false, messageElement, btnElement) {
+            const originalText = btnElement.textContent;
+            btnElement.disabled = true;
+            btnElement.textContent = confirmUpdate ? 'Updating...' : 'Subscribing...';
 
             fetch('/subscribe', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email: email })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, confirm: confirmUpdate })
             })
                 .then(response => response.json())
                 .then(data => {
-                    subscribeMessage.classList.remove('hidden');
+                    messageElement.classList.remove('hidden');
                     if (data.success) {
-                        subscribeMessage.className = 'text-sm text-center font-medium mt-4 text-green-600';
-                        subscribeMessage.textContent = data.message;
+                        messageElement.className = 'text-sm text-center font-medium mt-4 text-green-600';
+                        if (messageElement.id === 'footer-subscribe-message') {
+                            messageElement.className = 'text-xs font-medium text-green-400 mt-1';
+                        }
+                        messageElement.textContent = data.message;
                         setTimeout(() => {
-                            toggleSubscribe();
-                            this.reset();
-                        }, 2000);
+                            if (subscribeModal && !subscribeModal.classList.contains('hidden')) {
+                                toggleSubscribe();
+                            }
+                            messageElement.classList.add('hidden');
+                        }, 3000);
+                    } else if (data.conflict) {
+                        // Logic for IP conflict: asking for update
+                        if (confirm(data.message)) {
+                            submitSubscribe(email, true, messageElement, btnElement);
+                        } else {
+                            messageElement.classList.add('hidden');
+                        }
                     } else {
-                        subscribeMessage.className = 'text-sm text-center font-medium mt-4 text-red-600';
-                        subscribeMessage.textContent = data.error || 'An error occurred';
+                        messageElement.className = 'text-sm text-center font-medium mt-4 text-red-600';
+                        if (messageElement.id === 'footer-subscribe-message') {
+                            messageElement.className = 'text-xs font-medium text-red-400 mt-1';
+                        }
+                        messageElement.textContent = data.error || 'An error occurred';
                     }
                 })
                 .catch(error => {
-                    subscribeMessage.classList.remove('hidden');
-                    subscribeMessage.className = 'text-sm text-center font-medium mt-4 text-red-600';
-                    subscribeMessage.textContent = 'Network error. Please try again.';
+                    messageElement.classList.remove('hidden');
+                    messageElement.className = 'text-sm text-center font-medium mt-4 text-red-600';
+                    messageElement.textContent = 'Network error. Please try again.';
                 })
                 .finally(() => {
-                    btn.disabled = false;
-                    btn.textContent = originalText;
+                    btnElement.disabled = false;
+                    btnElement.textContent = originalText;
                 });
-        });
+        }
+
+        // Main Modal Submission
+        if (subscribeForm) {
+            subscribeForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                submitSubscribe(this.email.value, false, subscribeMessage, this.querySelector('button'));
+            });
+        }
+
+        // Footer Form Submission
+        const footerSubForm = document.getElementById('footer-subscribe-form');
+        const footerSubMsg = document.getElementById('footer-subscribe-message');
+        if (footerSubForm) {
+            footerSubForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                submitSubscribe(this.email.value, false, footerSubMsg, this.querySelector('button'));
+            });
+        }
     </script>
 </body>
 

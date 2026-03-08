@@ -73,14 +73,31 @@
                             <span>Keywords</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('admin_subscribers') }}"
+                            class="nav-link {% if request.endpoint == 'admin_subscribers' %}active{% endif %}">
+                            <i data-lucide="mail" class="nav-icon"></i>
+                            <span>Subscribers</span>
+                        </a>
+                    </li>
 
-                    <!-- Website Edit Section -->
-                    <li class="nav-divider">
-                        <a href="{{ url_for('admin_slogan_backgrounds') }}"
-                            class="nav-link {% if request.endpoint == 'admin_slogan_backgrounds' %}active{% endif %}">
+                    <!-- Website Edit Section (Collapsible Folder) -->
+                    <li
+                        class="nav-item has-submenu {% if request.endpoint == 'admin_slogan_backgrounds' %}expanded{% endif %}">
+                        <a href="javascript:void(0)" class="nav-link submenu-toggle" onclick="toggleSubmenu(this)">
                             <i data-lucide="pen-tool" class="nav-icon"></i>
                             <span>Website Edit</span>
+                            <i data-lucide="chevron-down" class="submenu-arrow"></i>
                         </a>
+                        <ul class="nav-submenu">
+                            <li class="nav-item">
+                                <a href="{{ url_for('admin_slogan_backgrounds') }}"
+                                    class="nav-link {% if request.endpoint == 'admin_slogan_backgrounds' %}active{% endif %}">
+                                    <i data-lucide="image" class="nav-icon"></i>
+                                    <span>Slogan Backgrounds</span>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                 </ul>
             </nav>
@@ -127,11 +144,25 @@
         </main>
     </div>
 
-    <!-- Initialize Lucide Icons -->
+    <!-- Initialize Lucide Icons & Submenu Logic -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             lucide.createIcons();
+
+            // Auto-expand submenu if an active item is inside it
+            const activeSubLink = document.querySelector('.nav-submenu .nav-link.active');
+            if (activeSubLink) {
+                const parentLi = activeSubLink.closest('.has-submenu');
+                if (parentLi) {
+                    parentLi.classList.add('expanded');
+                }
+            }
         });
+
+        function toggleSubmenu(element) {
+            const parentLi = element.closest('.has-submenu');
+            parentLi.classList.toggle('expanded');
+        }
     </script>
 
     <!-- Additional Scripts -->

@@ -4,60 +4,93 @@
 
 {% block header_actions %}
 <button onclick="document.getElementById('upload-modal').style.display='flex'" class="btn btn-primary">
-    Upload New Background
+    <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+    New Background
 </button>
 {% endblock %}
 
 {% block content %}
-<div class="slogan-grid">
-    {% for bg in backgrounds %}
-    <div class="slogan-card {% if bg.is_active %}active-card{% endif %}">
-        <div class="slogan-preview">
-            <img src="{{ url_for('static', filename='uploads/' + bg.filename) }}" alt="{{ bg.name }}">
-            {% if bg.is_active %}
-            <div class="slogan-active-badge">Active</div>
-            {% endif %}
-        </div>
+<div class="animate-fadeIn">
+    {% if backgrounds %}
+    <div class="slogan-grid">
+        {% for bg in backgrounds %}
+        <div class="slogan-card {% if not bg.is_active %}card-inactive{% endif %}" id="bg-card-{{ bg.id }}">
+            <div class="slogan-card-image">
+                <img src="{{ url_for('static', filename='uploads/' + bg.filename) }}"
+                    alt="{{ bg.name if bg.name else 'Background' }}">
+                {% if bg.is_active %}
+                <div class="slogan-active-badge">
+                    <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+                    Active
+                </div>
+                {% endif %}
+            </div>
 
-        <div class="slogan-info">
-            <h3>{{ bg.name }}</h3>
-            <p class="slogan-upload-date">Uploaded: {{ bg.created_at.strftime('%Y-%m-%d') }}</p>
-        </div>
+            <div class="slogan-card-content">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="slogan-card-title">{{ bg.name if bg.name else 'Untitled Background' }}</h3>
 
-        <div class="slogan-actions">
-            {% if not bg.is_active %}
-            <button onclick="activateBackground({{ bg.id }})" class="btn btn-sm btn-success">Set as Active</button>
-            <button onclick="deleteBackground({{ bg.id }})" class="btn btn-sm btn-danger">Delete</button>
-            {% else %}
-            <span class="current-active-text">Currently Active</span>
-            {% endif %}
+                    <div class="flex items-center gap-2">
+                        {% if not bg.is_active %}
+                        <label class="theme-toggle-switch" title="Set as Active">
+                            <input type="checkbox" onchange="activateBackground({{ bg.id }})">
+                            <span class="slider round"></span>
+                        </label>
+                        {% endif %}
+
+                        <button class="action-btn delete" onclick="deleteBackground({{ bg.id }})" title="Delete"
+                            style="border:none; padding:4px;">
+                            <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
+                        </button>
+                    </div>
+                </div>
+                <p class="slogan-card-meta">Uploaded on {{ bg.created_at.strftime('%b %d, %Y') }}</p>
+            </div>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i data-lucide="image" style="width: 64px; height: 64px; color: var(--gray-300);"></i>
+        </div>
+        <h3>No Backgrounds Yet</h3>
+        <p>Upload a background image to use for the homepage slogan card.</p>
+        <button onclick="document.getElementById('upload-modal').style.display='flex'" class="btn btn-primary">
+            Upload Background
+        </button>
+    </div>
+    {% endif %}
 </div>
 
 <!-- Upload Modal -->
 <div id="upload-modal" class="modal" style="display: none;">
     <div class="modal-overlay" onclick="document.getElementById('upload-modal').style.display='none'">
-        <div class="modal-container" style="max-width: 500px; padding: 2rem;" onclick="event.stopPropagation()">
-            <div class="modal-header"
-                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h2 style="margin: 0; font-size: 1.5rem;">Upload New Background</h2>
-                <button class="modal-close" onclick="document.getElementById('upload-modal').style.display='none'"
-                    style="position: static; color: #333; background: none; font-size: 2rem; width: auto; height: auto; box-shadow: none;">&times;</button>
+        <div class="modal-container" style="max-width: 500px;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2 class="modal-title">Upload New Background</h2>
+                <button class="modal-close"
+                    onclick="document.getElementById('upload-modal').style.display='none'">&times;</button>
             </div>
 
-            <form action="{{ url_for('upload_slogan_background') }}" method="post" enctype="multipart/form-data">
+            <form action="{{ url_for('upload_slogan_background') }}" method="post" enctype="multipart/form-data"
+                class="modal-form">
                 <div class="form-group">
-                    <label for="name" class="form-label">Name (Optional)</label>
-                    <input type="text" id="name" name="name" class="form-control">
+                    <label for="name" class="form-label">Background Name (Optional)</label>
+                    <input type="text" id="name" name="name" class="form-control" placeholder="e.g. Winter Spirit">
                 </div>
                 <div class="form-group">
                     <label for="background_image" class="form-label">Image File</label>
                     <input type="file" id="background_image" name="background_image" accept="image/*" required
                         class="form-control">
+                    <p class="form-help">Recommended resolution: 1920x1080 or higher.</p>
                 </div>
-                <button type="submit" class="btn btn-primary" style="margin-top: 15px; width: 100%;">Upload</button>
+                <div class="modal-footer"
+                    style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="document.getElementById('upload-modal').style.display='none'">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Upload Image</button>
+                </div>
             </form>
         </div>
     </div>
@@ -65,7 +98,6 @@
 
 <script>
     function activateBackground(id) {
-        if (!confirm('Set this background as active?')) return;
         fetch(`/admin/slogan-backgrounds/${id}/activate`, { method: 'POST' })
             .then(r => r.json())
             .then(data => {
@@ -75,7 +107,7 @@
     }
 
     function deleteBackground(id) {
-        if (!confirm('Delete this background?')) return;
+        if (!confirm('Are you sure you want to delete this background? This action cannot be undone.')) return;
         fetch(`/admin/slogan-backgrounds/${id}/delete`, { method: 'POST' })
             .then(r => r.json())
             .then(data => {
@@ -83,13 +115,117 @@
                 else alert(data.error || 'Error');
             });
     }
-
-    // Open modal on click (though handled by inline onclick, keeping this valid)
-    const openBtn = document.querySelector('.btn-primary');
-    if (openBtn) {
-        openBtn.onclick = function () {
-            document.getElementById('upload-modal').style.display = 'flex';
-        }
-    }
 </script>
+
+<style>
+    .slogan-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .slogan-card {
+        background: var(--white);
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        transition: all var(--transition-base);
+        border: 1px solid var(--gray-200);
+        position: relative;
+    }
+
+    .slogan-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .slogan-card.active {
+        border: 2px solid var(--ink-main);
+    }
+
+    .slogan-card-image {
+        height: 180px;
+        position: relative;
+        overflow: hidden;
+        background: var(--gray-100);
+    }
+
+    .slogan-card-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform var(--transition-slow);
+    }
+
+    .slogan-card:hover .slogan-card-image img {
+        transform: scale(1.05);
+    }
+
+    .slogan-active-badge {
+        position: absolute;
+        top: 0.75rem;
+        left: 0.75rem;
+        background-color: var(--ink-main);
+        color: var(--white);
+        padding: 0.25rem 0.625rem;
+        border-radius: var(--radius-full);
+        font-size: 0.75rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        box-shadow: var(--shadow-md);
+        z-index: 10;
+    }
+
+    .slogan-card-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity var(--transition-base);
+        z-index: 5;
+    }
+
+    .slogan-card:hover .slogan-card-overlay {
+        opacity: 1;
+    }
+
+    .overlay-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .slogan-card-content {
+        padding: 1.25rem;
+    }
+
+    .slogan-card-title {
+        font-family: var(--font-serif);
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--gray-800);
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .slogan-card-meta {
+        font-size: 0.75rem;
+        color: var(--gray-500);
+        margin: 0.25rem 0 0 0;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--white);
+        border-radius: var(--radius-sm);
+        border: 2px dashed var(--gray-200);
+    }
+</style>
 {% endblock %}
