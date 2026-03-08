@@ -1,0 +1,365 @@
+{% extends "admin/base.html" %}
+
+{% block page_title %}Manage CMS Accounts{% endblock %}
+
+{% block header_actions %}
+{% if session.get('user_role') == 'admin' %}
+<button onclick="openNewUserModal()" class="btn btn-primary">
+    <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+    New Account
+</button>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="animate-fadeIn">
+
+    <!-- Account Table -->
+    <div class="toolbar"
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; background: white; padding: 1rem; border-radius: 8px; border: 1px solid #e5e7eb; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+        <div class="search-input" style="position: relative; flex: 1; max-width: 400px;">
+            <i data-lucide="search" class="search-icon"
+                style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: #9ca3af;"></i>
+            <input type="text" id="user-search" placeholder="Search accounts..." onkeyup="filterUsers()"
+                style="width: 100%; padding: 0.5rem 1rem 0.5rem 2.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+        </div>
+        <div style="display: flex; gap: 0.5rem; color: var(--gray-500); font-size: 0.875rem; align-items: center;">
+            <i data-lucide="info" style="width: 16px; height: 16px;"></i>
+            Total: {{ users|length }} accounts
+        </div>
+    </div>
+
+    <div class="series-list-container">
+        <table class="series-table">
+            <thead>
+                <tr>
+                    <th style="width: 60px;">ID</th>
+                    <th>Name</th>
+                    <th>Username</th>
+                    {% if session.get('user_role') == 'admin' %}
+                    <th>Password</th>
+                    {% endif %}
+                    <th>Role</th>
+                    <th>Created</th>
+                    {% if session.get('user_role') == 'admin' %}
+                    <th style="text-align: right;">Actions</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td style="color: var(--gray-500);">#{{ user.id }}</td>
+                    <td>
+                        <div style="font-weight: 600; font-size: 1rem; color: var(--gray-900);">{{ user.name }}</div>
+                    </td>
+                    <td>
+                        <code
+                            style="font-size: 0.85rem; background-color: var(--gray-50); padding: 2px 6px; border-radius: 4px; color: var(--gray-700);">
+                            {{ user.username }}
+                        </code>
+                    </td>
+                    {% if session.get('user_role') == 'admin' %}
+                    <td>
+                        <div style="font-family: monospace; letter-spacing: 0.05em;">{{ user.password }}</div>
+                    </td>
+                    {% endif %}
+                    <td>
+                        <span class="badge role-badge role-{{ user.role }}">
+                            {{ user.role|capitalize }}
+                        </span>
+                    </td>
+                    <td style="color: var(--gray-600);">
+                        {{ user.created_at.strftime('%b %d, %Y') }}
+                    </td>
+                    {% if session.get('user_role') == 'admin' %}
+                    <td style="text-align: right;">
+                        <button
+                            onclick="openEditUserModal({{ user.id }}, '{{ user.username }}', '{{ user.name }}', '{{ user.password }}', '{{ user.role }}')"
+                            class="btn btn-sm btn-icon btn-secondary-outline" title="Edit">
+                            <i data-lucide="edit" style="width: 16px; height: 16px;"></i>
+                        </button>
+                        {% if user.username != 'Vold' %}
+                        <button onclick="deleteUser({{ user.id }}, '{{ user.username }}')"
+                            class="btn btn-sm btn-icon btn-danger-outline" title="Delete">
+                            <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                        </button>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add/Edit User Modal -->
+<div id="user-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modal-title">New CMS Account</h2>
+            <span class="close" onclick="closeModal()">&times;</span>
+        </div>
+        <form id="user-form" onsubmit="handleUserSubmit(event)">
+            <input type="hidden" id="userId" name="userId">
+            <div class="form-group">
+                <label for="name">Real Name</label>
+                <input type="text" id="name" name="name" required class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="text" id="password" name="password" required class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="role">Role</label>
+                <select id="role" name="role" class="form-control">
+                    <option value="visitor">Visitor (Requires approval for edits)</option>
+                    <option value="editor">Editor (Can edit freely)</option>
+                    <option value="admin">Admin (Full Control)</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="save-btn">Create Account</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function filterUsers() {
+        const input = document.getElementById('user-search');
+        const filter = input.value.toLowerCase();
+        const tbody = document.querySelector('.series-table tbody');
+        const rows = tbody.getElementsByTagName('tr');
+
+        for (let row of rows) {
+            const name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            const username = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+
+            if (name.includes(filter) || username.includes(filter)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    }
+
+    function openNewUserModal() {
+        document.getElementById('modal-title').innerText = 'New CMS Account';
+        document.getElementById('save-btn').innerText = 'Create Account';
+        document.getElementById('user-form').reset();
+        document.getElementById('userId').value = '';
+        document.getElementById('user-modal').style.display = 'block';
+    }
+
+    function openEditUserModal(id, username, name, password, role) {
+        document.getElementById('modal-title').innerText = 'Edit CMS Account';
+        document.getElementById('save-btn').innerText = 'Update Account';
+        document.getElementById('userId').value = id;
+        document.getElementById('username').value = username;
+        document.getElementById('name').value = name;
+        document.getElementById('password').value = password;
+        document.getElementById('role').value = role;
+
+        // Don't allow changing Vold's username or role (for safety)
+        if (username === 'Vold') {
+            document.getElementById('username').disabled = true;
+            document.getElementById('role').disabled = true;
+        } else {
+            document.getElementById('username').disabled = false;
+            document.getElementById('role').disabled = false;
+        }
+
+        document.getElementById('user-modal').style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('user-modal').style.display = 'none';
+    }
+
+    function handleUserSubmit(event) {
+        event.preventDefault();
+        const userId = document.getElementById('userId').value;
+        const isEdit = userId !== '';
+
+        const data = {
+            username: document.getElementById('username').value,
+            name: document.getElementById('name').value,
+            password: document.getElementById('password').value,
+            role: document.getElementById('role').value
+        };
+
+        const url = isEdit ? `/admin/cms-users/${userId}/update` : '/admin/cms-users/new';
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Error connecting to server');
+            });
+    }
+
+    function deleteUser(id, username) {
+        if (confirm(`Are you sure you want to delete the account "${username}"?`)) {
+            fetch(`/admin/cms-users/${id}/delete`, {
+                method: 'POST'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error deleting user: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('Error connecting to server');
+                });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        lucide.createIcons();
+    });
+</script>
+
+<style>
+    .role-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .role-admin {
+        background-color: rgba(79, 70, 229, 0.1);
+        color: #4f46e5;
+    }
+
+    .role-editor {
+        background-color: rgba(16, 185, 129, 0.1);
+        color: #059669;
+    }
+
+    .role-visitor {
+        background-color: rgba(245, 158, 11, 0.1);
+        color: #d97706;
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+        background-color: white;
+        margin: 10% auto;
+        padding: 2rem;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 500px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modal-header h2 {
+        font-family: var(--font-serif);
+        font-size: 1.5rem;
+        color: var(--gray-900);
+        margin: 0;
+    }
+
+    .close {
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--gray-400);
+    }
+
+    .close:hover {
+        color: var(--gray-600);
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.625rem 0.875rem;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        transition: border-color 0.2s;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    /* Reuse series table styles */
+    .series-table td {
+        vertical-align: middle;
+    }
+
+    .btn-icon {
+        padding: 0.25rem;
+        border-radius: 4px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        margin-left: 0.5rem;
+    }
+</style>
+{% endblock %}

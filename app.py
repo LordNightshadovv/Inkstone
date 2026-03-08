@@ -2,6 +2,7 @@ import os
 import re
 import requests
 import hashlib
+import json
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -311,21 +312,20 @@ class Theme(db.Model):
     card_image = db.Column(db.String(255), nullable=True) # Image for explore themes card
     is_active = db.Column(db.Boolean, default=True)
     is_initiative = db.Column(db.Boolean, default=False)  # Initiative themes accept only initiative posts
+    status = db.Column(db.String(20), default='published')  # 'published' or 'pending'
     
     # Note: Many-to-many relationship with posts is defined in Post model via post_themes table
 
     @property
     def published_posts(self):
-        """Return all posts for this theme (from both relationships)"""
+        """Return all published posts for this theme (from both relationships)"""
         # Get posts from many-to-many relationship
-        m2m_posts = list(self.posts)
-        
-        # Get posts from direct FK relationship (theme_id)
-        fk_posts = Post.query.filter(Post.theme_id == self.id).all()
-        
-        # Combine and deduplicate
-        all_posts = {post.id: post for post in m2m_posts + fk_posts}
-        return list(all_posts.values())
+        m2m_posts = [p for p in self.posts if p.status == 'published']
+        # Get posts from foreign key relationship
+        fk_posts = Post.query.filter(Post.theme_id == self.id, Post.status == 'published').all()
+        # Combine and remove duplicates
+        all_posts = list(set(m2m_posts + fk_posts))
+        return all_posts
     
     @property
     def published_post_count(self):
@@ -352,6 +352,7 @@ class Keyword(db.Model):
     usage_count = db.Column(db.Integer, default=0, nullable=False)  # Accurate count
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    status = db.Column(db.String(20), default='published')  # 'published' or 'pending'
     
     @property
     def display_name(self):
@@ -378,6 +379,7 @@ class Series(db.Model):
     description = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
+    status = db.Column(db.String(20), default='published')  # 'published' or 'pending'
     
     # Relationship to posts
     posts = db.relationship('Post', backref='series', lazy=True, order_by='Post.series_order')
@@ -390,6 +392,7 @@ class Protagonist(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), unique=True, nullable=False)
     is_active = db.Column(db.Boolean, default=True)
+    status = db.Column(db.String(20), default='published')  # 'published' or 'pending'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -410,6 +413,37 @@ class Protagonist(db.Model):
     
     def __repr__(self):
         return f'<Protagonist {self.name}>'
+
+class CMSUser(db.Model):
+    """Model for managing CMS accounts with roles and permissions."""
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(120), nullable=False)  # Stored as plain text per requirement
+    name = db.Column(db.String(120), nullable=False)      # Real name
+    role = db.Column(db.String(20), nullable=False, default='editor')  # admin, editor, visitor
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<CMSUser {self.username} ({self.role})>'
+
+# Database model for pending updates
+class PendingUpdate(db.Model):
+    """Model for tracking proposed changes from visitor users."""
+    id = db.Column(db.Integer, primary_key=True)
+    category = db.Column(db.String(50), nullable=False)  # theme, post, keyword, protagonist, series
+    action = db.Column(db.String(20), nullable=False)    # create, update, delete
+    item_id = db.Column(db.Integer, nullable=True)       # ID of the item being updated/deleted
+    item_name = db.Column(db.String(200), nullable=True) # Display name of the item
+    data = db.Column(db.Text, nullable=True)             # JSON serialized data of the update
+    user_id = db.Column(db.Integer, db.ForeignKey('cms_user.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationship to user
+    user = db.relationship('CMSUser', backref='pending_updates')
+
+    def __repr__(self):
+        return f'<PendingUpdate {self.category} {self.action} by user {self.user_id}>'
+
 
 
 # Database model for multi-modal posts
@@ -435,6 +469,7 @@ class Post(db.Model):
     is_initiative = db.Column(db.Boolean, default=False)  # Initiative posts have special rules
     frame_color = db.Column(db.String(7), default='#2563eb')  # Custom frame color for initiative posts
     use_youtube_poster = db.Column(db.Boolean, default=False)  # Use YouTube video as poster
+    status = db.Column(db.String(20), default='published')  # 'published' or 'pending'
     
     # Relationship to pictures
     pictures = db.relationship('Picture', backref='post', lazy=True, cascade='all, delete-orphan', 
@@ -708,23 +743,240 @@ def login():
     
     form = LoginForm()
     if form.validate_on_submit():
-        # Check if the username and password are correct
-        if form.username.data == app.config['ADMIN_USERNAME'] and \
-           form.password.data == app.config['ADMIN_PASSWORD']:
+        # 1. Check if the hardcoded super-admin exists in DB (bootstrap if not)
+        vold = CMSUser.query.filter_by(username='Vold').first()
+        if not vold:
+            try:
+                # Use current config password as fallback if not set to requested one yet
+                # But requirement says Vold's password should be Volkerrechtssubjectivitat
+                vold = CMSUser(
+                    username='Vold',
+                    password='Volkerrechtssubjectivitat',
+                    name='Vold',
+                    role='admin'
+                )
+                db.session.add(vold)
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                print(f"Error bootstrapping admin: {e}")
+
+        # 2. Authenticate against DB
+        user = CMSUser.query.filter_by(username=form.username.data).first()
+        
+        if user and user.password == form.password.data:
             session['admin_logged_in'] = True
-            flash('You were successfully logged in.')
+            session['user_id'] = user.id
+            session['username'] = user.username
+            session['user_role'] = user.role
+            session['user_name'] = user.name
+            
+            flash(f'Welcome back, {user.name}!')
             return redirect(url_for('admin_dashboard'))
         else:
-            flash('Invalid username or password.')
+            flash('Invalid username or password.', 'error')
+            
     return render_template('admin/login.html', form=form)
 
 # Admin logout
 @app.route('/admin/logout')
 def logout():
-    # Remove the admin_logged_in key from the session
+    # Clear all admin session data
     session.pop('admin_logged_in', None)
+    session.pop('user_id', None)
+    session.pop('username', None)
+    session.pop('user_role', None)
+    session.pop('user_name', None)
+    
     flash('You were logged out.')
     return redirect(url_for('login'))
+
+# --- CMS User Management ---
+
+@app.route('/admin/cms-users')
+def admin_cms_users():
+    """List and manage CMS user accounts."""
+    if 'admin_logged_in' not in session:
+        return redirect(url_for('login'))
+    
+    # Only admins can access this page
+    if session.get('user_role') != 'admin':
+        flash('You do not have permission to access CMS user management.', 'error')
+        return redirect(url_for('admin_dashboard'))
+    
+    users = CMSUser.query.all()
+    return render_template('admin/cms_users.html', users=users)
+
+@app.route('/admin/cms-users/new', methods=['POST'])
+def new_cms_user():
+    """Create a new CMS user account."""
+    if 'admin_logged_in' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    if session.get('user_role') != 'admin':
+        return jsonify({'error': 'Insufficient permissions'}), 403
+    
+    try:
+        data = request.get_json()
+        
+        # Check if username already exists
+        if CMSUser.query.filter_by(username=data.get('username')).first():
+            return jsonify({'error': 'Username already exists'}), 400
+            
+        new_user = CMSUser(
+            username=data.get('username'),
+            password=data.get('password'),
+            name=data.get('name'),
+            role=data.get('role', 'editor')
+        )
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({'success': True, 'id': new_user.id})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/admin/cms-users/<int:user_id>/update', methods=['POST'])
+def update_cms_user(user_id):
+    """Update an existing CMS user account."""
+    if 'admin_logged_in' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+        
+    currentUserRole = session.get('user_role')
+    currentUserId = session.get('user_id')
+    
+    # Only admins can update ANY user. Other roles can potentially update ONLY themselves (if allowed).
+    # For now, stick to requirement that admins manage accounts.
+    if currentUserRole != 'admin' and currentUserId != user_id:
+        return jsonify({'error': 'Insufficient permissions'}), 403
+    
+    try:
+        user = CMSUser.query.get_or_404(user_id)
+        data = request.get_json()
+        
+        # Super admin Vold's username shouldn't be changed if we want to guarantee its existence
+        if user.username != 'Vold':
+            user.username = data.get('username', user.username)
+            
+        user.name = data.get('name', user.name)
+        user.password = data.get('password', user.password)
+        
+        # Only admins can change roles
+        if currentUserRole == 'admin':
+            user.role = data.get('role', user.role)
+            
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/admin/cms-users/<int:user_id>/delete', methods=['POST'])
+def delete_cms_user(user_id):
+    """Delete a CMS user account."""
+    if 'admin_logged_in' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    if session.get('user_role') != 'admin':
+        return jsonify({'error': 'Insufficient permissions'}), 403
+    
+    try:
+        user = CMSUser.query.get_or_404(user_id)
+        
+        # Prevent deleting the super-admin Vold
+        if user.username == 'Vold':
+            return jsonify({'error': 'Cannot delete the super-admin account'}), 400
+            
+        db.session.delete(user)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+# --- Moderation & Pending Updates ---
+
+@app.route('/admin/pending-updates')
+def pending_updates():
+    """List and manage pending updates."""
+    if 'admin_logged_in' not in session:
+        return redirect(url_for('login'))
+    
+    # Only admins can access this page
+    if session.get('user_role') != 'admin':
+        flash('You do not have permission to access moderation tools.', 'error')
+        return redirect(url_for('admin_dashboard'))
+    
+    updates = PendingUpdate.query.order_by(PendingUpdate.created_at.desc()).all()
+    return render_template('admin/pending_updates.html', updates=updates)
+
+@app.route('/admin/pending-updates/<int:update_id>/approve', methods=['POST'])
+def approve_update(update_id):
+    """Approve a pending update."""
+    if 'admin_logged_in' not in session or session.get('user_role') != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        update = PendingUpdate.query.get_or_404(update_id)
+        
+        # Logic to apply the update based on category
+        if update.category == 'Post Update':
+            item = Post.query.get(update.item_id)
+        elif update.category == 'Theme Update':
+            item = Theme.query.get(update.item_id)
+        elif update.category == 'Series Update':
+            item = Series.query.get(update.item_id)
+        elif update.category == 'Protagonist Update':
+            item = Protagonist.query.get(update.item_id)
+        elif update.category == 'Keyword Update':
+            item = Keyword.query.get(update.item_id)
+        else:
+            item = None
+            
+        if item and hasattr(item, 'status'):
+            item.status = 'published'
+            # For items that affect static pages, trigger regeneration
+            if update.category in ['Post Update', 'Theme Update', 'Series Update']:
+                regenerate_all_static_pages()
+        
+        db.session.delete(update)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/admin/pending-updates/<int:update_id>/decline', methods=['POST'])
+def decline_update(update_id):
+    """Decline a pending update."""
+    if 'admin_logged_in' not in session or session.get('user_role') != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        update = PendingUpdate.query.get_or_404(update_id)
+        
+        if update.action == 'create':
+            item = None
+            if update.category == 'Post Update':
+                item = Post.query.get(update.item_id)
+            elif update.category == 'Theme Update':
+                item = Theme.query.get(update.item_id)
+            elif update.category == 'Series Update':
+                item = Series.query.get(update.item_id)
+            elif update.category == 'Protagonist Update':
+                item = Protagonist.query.get(update.item_id)
+            elif update.category == 'Keyword Update':
+                item = Keyword.query.get(update.item_id)
+                
+            if item:
+                db.session.delete(item)
+        
+        db.session.delete(update)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 # Admin dashboard
 @app.route('/admin')
@@ -739,7 +991,7 @@ def admin_dashboard():
     total_series = Series.query.filter_by(is_active=True).count()
     active_protagonists = Protagonist.query.filter_by(is_active=True).count()
     
-    # Get recent posts
+    # Get recent posts (all statuses for dashboard)
     recent_posts = Post.query.order_by(Post.publication_date.desc()).limit(5).all()
     
     # Get theme statistics
@@ -1117,7 +1369,7 @@ def regenerate_all_static_pages():
                     print(f"  ✗ Error generating post page for {post.slug}: {e}")
             
             # Generate theme pages
-            themes = Theme.query.filter_by(is_active=True).all()
+            themes = Theme.query.filter_by(is_active=True, status='published').all()
             print(f"🎨 Regenerating {len(themes)} theme pages...")
             for theme in themes:
                 try:
@@ -1403,9 +1655,14 @@ def new_post():
                 publication_date=pub_date,
                 theme_id=form.theme_id.data if form.theme_id.data != 0 else None,
                 series_id=form.series_id.data if form.series_id.data != 0 else None,
-                series_order=form.series_order.data if form.series_order.data else None
+                series_order=form.series_order.data if form.series_order.data else None,
+                status='pending' if session.get('user_role') == 'visitor' else 'published'
             )
             
+            if session.get('user_role') == 'visitor':
+                flash('Your post has been submitted for admin approval.', 'info')
+            else:
+                flash('Post successfully published!')
             # Add tags
             for tag_id in form.tags.data:
                 tag = Tag.query.get(tag_id)
@@ -1462,6 +1719,20 @@ def new_post():
             
             # Commit all changes to the database
             db.session.commit()
+
+            # Create PendingUpdate for moderation if visitor
+            if session.get('user_role') == 'visitor':
+                update = PendingUpdate(
+                    category='Post Update',
+                    action='create',
+                    item_id=post.id,
+                    item_name=post.title,
+                    user_id=session.get('user_id'),
+                    data=json.dumps({'post_id': post.id}) # Simplest case for now as item is in DB with status=pending
+                )
+                db.session.add(update)
+                db.session.commit()
+
             generate_static_post_page(post) # Generate static page
             regenerate_all_static_pages() # Regenerate all static pages
             flash('Your post has been created successfully!')
@@ -1618,6 +1889,22 @@ def edit_post(post_id):
             post.series_id = form.series_id.data if form.series_id.data != 0 else None
             post.series_order = form.series_order.data if form.series_order.data else None
             
+            # If visitor, set to pending per requirement and create update record
+            if session.get('user_role') == 'visitor':
+                post.status = 'pending'
+                update = PendingUpdate(
+                    category='Post Update',
+                    action='update',
+                    item_id=post.id,
+                    item_name=post.title,
+                    user_id=session.get('user_id'),
+                    data=json.dumps({'post_id': post.id})
+                )
+                db.session.add(update)
+                flash('Your edits have been submitted for admin approval.', 'info')
+            else:
+                flash('Post successfully updated!')
+            
             # Update tags
             post.tags.clear()
             for tag_id in form.tags.data:
@@ -1737,6 +2024,21 @@ def edit_post(post_id):
     return render_template('admin/form.html', form=form, legend='Edit Post', post=post)
 
 # Delete a post
+@app.route('/admin/post/<int:post_id>/approve', methods=['POST'])
+def approve_post_route(post_id):
+    """Approve and publish a pending post."""
+    if 'admin_logged_in' not in session or session.get('user_role') != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        post = Post.query.get_or_404(post_id)
+        post.status = 'published'
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/admin/delete/<int:post_id>', methods=['POST', 'GET'])
 def delete_post(post_id):
     if 'admin_logged_in' not in session:
@@ -1839,10 +2141,28 @@ def new_theme():
                 card_file.save(card_filepath)
                 theme.card_image = card_filename
             
+            if session.get('user_role') == 'visitor':
+                theme.status = 'pending'
+            
             db.session.add(theme)
             db.session.commit()
-            regenerate_all_static_pages()
-            flash('Theme created successfully!')
+
+            if session.get('user_role') == 'visitor':
+                update = PendingUpdate(
+                    category='Theme Update',
+                    action='create',
+                    item_id=theme.id,
+                    item_name=theme.name,
+                    user_id=session.get('user_id'),
+                    data=json.dumps({'theme_id': theme.id})
+                )
+                db.session.add(update)
+                db.session.commit()
+                flash('Your theme has been submitted for admin approval.', 'info')
+            else:
+                regenerate_all_static_pages()
+                flash('Theme created successfully!')
+            
             return redirect(url_for('admin_themes'))
         except Exception as e:
             db.session.rollback()
@@ -1929,9 +2249,23 @@ def edit_theme(theme_id):
                 card_file.save(card_filepath)
                 theme.card_image = card_filename
             
+            if session.get('user_role') == 'visitor':
+                theme.status = 'pending'
+                update = PendingUpdate(
+                    category='Theme Update',
+                    action='update',
+                    item_id=theme.id,
+                    item_name=theme.name,
+                    user_id=session.get('user_id'),
+                    data=json.dumps({'theme_id': theme.id})
+                )
+                db.session.add(update)
+                flash('Your edits have been submitted for admin approval.', 'info')
+            else:
+                regenerate_all_static_pages()
+                flash('Theme updated successfully!')
+            
             db.session.commit()
-            regenerate_all_static_pages()
-            flash('Theme updated successfully!')
             return redirect(url_for('admin_themes'))
         except Exception as e:
             db.session.rollback()
@@ -2007,10 +2341,28 @@ def new_series():
                 description=form.description.data,
                 is_active=form.is_active.data
             )
+            if session.get('user_role') == 'visitor':
+                series.status = 'pending'
+            
             db.session.add(series)
             db.session.commit()
-            regenerate_all_static_pages()
-            flash('Series created successfully!')
+
+            if session.get('user_role') == 'visitor':
+                update = PendingUpdate(
+                    category='Series Update',
+                    action='create',
+                    item_id=series.id,
+                    item_name=series.title,
+                    user_id=session.get('user_id'),
+                    data=json.dumps({'series_id': series.id})
+                )
+                db.session.add(update)
+                db.session.commit()
+                flash('Your series concept has been submitted for admin approval.', 'info')
+            else:
+                regenerate_all_static_pages()
+                flash('Series created successfully!')
+            
             return redirect(url_for('admin_series'))
         except Exception as e:
             db.session.rollback()
@@ -2032,14 +2384,26 @@ def edit_series(series_id):
             series.description = form.description.data
             series.is_active = form.is_active.data
             
+            if session.get('user_role') == 'visitor':
+                series.status = 'pending'
+                update = PendingUpdate(
+                    category='Series Update',
+                    action='update',
+                    item_id=series.id,
+                    item_name=series.title,
+                    user_id=session.get('user_id'),
+                    data=json.dumps({'series_id': series.id})
+                )
+                db.session.add(update)
+                flash('Your series edits have been submitted for admin approval.', 'info')
+            else:
+                # Regenerate static pages for all posts in this series
+                for post in series.posts:
+                    generate_static_post_page(post)
+                regenerate_all_static_pages()
+                flash('Series updated successfully!')
+            
             db.session.commit()
-            
-            # Regenerate static pages for all posts in this series
-            for post in series.posts:
-                generate_static_post_page(post)
-            regenerate_all_static_pages()
-            
-            flash('Series updated successfully!')
             return redirect(url_for('admin_series'))
         except Exception as e:
             db.session.rollback()
@@ -2220,11 +2584,28 @@ def new_protagonist():
     if form.validate_on_submit():
         try:
             protagonist = Protagonist(name=form.name.data.strip())
+            if session.get('user_role') == 'visitor':
+                protagonist.status = 'pending'
+            
             db.session.add(protagonist)
             db.session.commit()
             
-            flash('Protagonist profile created successfully!')
-            return redirect(url_for('edit_protagonist', protagonist_id=protagonist.id))
+            if session.get('user_role') == 'visitor':
+                update = PendingUpdate(
+                    category='Protagonist Update',
+                    action='create',
+                    item_id=protagonist.id,
+                    item_name=protagonist.name,
+                    user_id=session.get('user_id'),
+                    data=json.dumps({'protagonist_id': protagonist.id})
+                )
+                db.session.add(update)
+                db.session.commit()
+                flash('Your protagonist entry has been submitted for admin approval.', 'info')
+                return redirect(url_for('admin_protagonists'))
+            else:
+                flash('Protagonist profile created successfully!')
+                return redirect(url_for('edit_protagonist', protagonist_id=protagonist.id))
         except Exception as e:
             db.session.rollback()
             flash(f'Error creating protagonist: {str(e)}')
@@ -2259,10 +2640,23 @@ def edit_protagonist(protagonist_id):
                 post.author = ' | '.join(authors)
                 generate_static_post_page(post)
             
-            db.session.commit()
-            regenerate_all_static_pages()
+            if session.get('user_role') == 'visitor':
+                protagonist.status = 'pending'
+                update = PendingUpdate(
+                    category='Protagonist Update',
+                    action='update',
+                    item_id=protagonist.id,
+                    item_name=protagonist.name,
+                    user_id=session.get('user_id'),
+                    data=json.dumps({'protagonist_id': protagonist.id})
+                )
+                db.session.add(update)
+                flash('Your protagonist edits have been submitted for admin approval.', 'info')
+            else:
+                regenerate_all_static_pages()
+                flash('Protagonist profile updated successfully!')
             
-            flash('Protagonist profile updated successfully!')
+            db.session.commit()
             return redirect(url_for('admin_protagonists'))
         except Exception as e:
             db.session.rollback()
@@ -2465,11 +2859,28 @@ def new_keyword():
                 name=normalized_name,
                 usage_count=0
             )
+            if session.get('user_role') == 'visitor':
+                keyword.status = 'pending'
+            
             db.session.add(keyword)
             db.session.commit()
             
-            flash(f'Keyword "{keyword.display_name}" created successfully!')
-            return redirect(url_for('edit_keyword', keyword_id=keyword.id))
+            if session.get('user_role') == 'visitor':
+                update = PendingUpdate(
+                    category='Keyword Update',
+                    action='create',
+                    item_id=keyword.id,
+                    item_name=keyword.name,
+                    user_id=session.get('user_id'),
+                    data=json.dumps({'keyword_id': keyword.id})
+                )
+                db.session.add(update)
+                db.session.commit()
+                flash('Your keyword has been submitted for admin approval.', 'info')
+                return redirect(url_for('admin_keywords'))
+            else:
+                flash(f'Keyword "{keyword.display_name}" created successfully!')
+                return redirect(url_for('edit_keyword', keyword_id=keyword.id))
         except Exception as e:
             db.session.rollback()
             flash(f'Error creating keyword: {str(e)}')
@@ -2504,10 +2915,23 @@ def edit_keyword(keyword_id):
                     post.keywords = ', '.join(keywords_list)
                     generate_static_post_page(post)
             
-            db.session.commit()
-            regenerate_all_static_pages()
+            if session.get('user_role') == 'visitor':
+                keyword.status = 'pending'
+                update = PendingUpdate(
+                    category='Keyword Update',
+                    action='update',
+                    item_id=keyword.id,
+                    item_name=keyword.name,
+                    user_id=session.get('user_id'),
+                    data=json.dumps({'keyword_id': keyword.id})
+                )
+                db.session.add(update)
+                flash('Your keyword edits have been submitted for admin approval.', 'info')
+            else:
+                regenerate_all_static_pages()
+                flash('Keyword updated successfully!')
             
-            flash(f'Keyword updated to "{keyword.display_name}" successfully!')
+            db.session.commit()
             return redirect(url_for('admin_keywords'))
         except Exception as e:
             db.session.rollback()
@@ -2886,6 +3310,7 @@ def search():
     
     # Search in title, author, abstract, text_content
     posts = Post.query.filter(
+        Post.status == 'published', # Only search published posts
         or_(
             Post.title.ilike(f'%{query}%'),
             Post.author.ilike(f'%{query}%'),
@@ -3031,9 +3456,10 @@ def search_protagonists():
 def index():
     print(f"Database URI: {app.config['SQLALCHEMY_DATABASE_URI']}") # New diagnostic print
     # Get all posts from the database (limit to 6)
-    all_posts = Post.query.order_by(Post.publication_date.desc()).limit(6).all()
-    # Find the latest featured post
-    featured_post = Post.query.filter_by(is_featured=True).order_by(Post.publication_date.desc()).first()
+    # Get regular posts (non-initiative) for the waterfall
+    all_posts = Post.query.filter_by(status='published').order_by(Post.publication_date.desc()).limit(6).all()
+    # Find active featured post
+    featured_post = Post.query.filter_by(status='published', is_featured=True).order_by(Post.publication_date.desc()).first()
     # Get all keywords for search and convert to dict for JSON serialization
     keywords_query = Keyword.query.order_by(Keyword.name).all()
     keywords = [{'id': k.id, 'name': k.name, 'display_name': k.display_name, 'usage_count': k.usage_count} for k in keywords_query]
@@ -3049,10 +3475,10 @@ def index():
 @app.route('/stories')
 def stories():
     # Get all active themes for dynamic filtering
-    themes = Theme.query.filter_by(is_active=True).all()
+    themes = Theme.query.filter_by(is_active=True, status='published').all()
     
-    # Get all posts
-    posts = Post.query.order_by(Post.publication_date.desc()).all()
+    # Get all published posts
+    posts = Post.query.filter_by(status='published').order_by(Post.publication_date.desc()).all()
     
     return render_template('voices.html', posts=posts, themes=themes)
 
@@ -3063,8 +3489,8 @@ def our_voices_all():
     # Get keyword filter parameter (comma-separated keyword IDs)
     keyword_ids = request.args.get('keywords', '')
     
-    # Start with base query
-    query = Post.query
+    # Start with base query - only published posts
+    query = Post.query.filter_by(status='published')
     
     # Apply tag filter
     if filter_tag != 'all':
@@ -3115,32 +3541,32 @@ def our_voices_partial():
 @app.route('/about')
 def about():
     # Get all active themes for the What We Publish section
-    themes = Theme.query.filter_by(is_active=True).all()
+    themes = Theme.query.filter_by(is_active=True, status='published').all()
     return render_template('about.html', themes=themes)
 
 @app.route('/explore-themes')
 def explore_themes():
     # Get all active themes
-    themes = Theme.query.filter_by(is_active=True).all()
+    themes = Theme.query.filter_by(is_active=True, status='published').all()
     return render_template('explore_themes.html', themes=themes)
 
 @app.route('/theme/<theme_slug>')
 def theme_posts(theme_slug):
     # Get theme by slug and its posts (from both FK and many-to-many relationships)
-    theme = Theme.query.filter_by(slug=theme_slug, is_active=True).first_or_404()
+    theme = Theme.query.filter_by(slug=theme_slug, is_active=True, status='published').first_or_404()
     posts = sorted(theme.published_posts, key=lambda p: p.publication_date, reverse=True)
     return render_template('theme_posts.html', theme=theme, posts=posts)
 
 @app.route('/post/<int:post_id>')
 def post_detail(post_id):
-    # Find post by ID for full-page view
-    post = Post.query.get_or_404(post_id)
+    # Find post by ID for full-page view - must be published
+    post = Post.query.filter_by(id=post_id, status='published').first_or_404()
     return render_template('post.html', post=post)
 
 @app.route('/<slug>')
 def post(slug):
-    # Find post by slug
-    post = Post.query.filter_by(slug=slug).first_or_404()
+    # Find post by slug - must be published
+    post = Post.query.filter_by(slug=slug, status='published').first_or_404()
     return render_template('post.html', post=post)
 
 # --- Main ---

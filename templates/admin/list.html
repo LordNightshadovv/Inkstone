@@ -32,6 +32,7 @@
                     <th>Title</th>
                     <th>Author</th>
                     <th>Theme</th>
+                    <th>Status</th>
                     <th>Published</th>
                     <th style="text-align: right;">Actions</th>
                 </tr>
@@ -78,12 +79,31 @@
                         {% endif %}
                     </td>
                     <td>
+                        {% if post.status == 'pending' %}
+                        <span class="badge"
+                            style="background-color: rgba(245, 158, 11, 0.1); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.2); font-size: 0.75rem;">
+                            Pending
+                        </span>
+                        {% else %}
+                        <span class="badge"
+                            style="background-color: rgba(16, 185, 129, 0.1); color: #059669; border: 1px solid rgba(16, 185, 129, 0.2); font-size: 0.75rem;">
+                            Published
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>
                         <span style="font-size: 0.875rem; color: var(--gray-600);">
                             {{ post.publication_date.strftime('%b %d, %Y') if post.publication_date else 'Draft' }}
                         </span>
                     </td>
                     <td>
                         <div class="action-buttons" style="justify-content: flex-end;">
+                            {% if post.status == 'pending' and session.get('user_role') == 'admin' %}
+                            <button class="action-btn" onclick="approvePost({{ post.id }})" title="Approve & Publish"
+                                style="color: #059669;">
+                                <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+                            </button>
+                            {% endif %}
                             <button class="action-btn" onclick="viewPost({{ post.id }})" title="View Details">
                                 <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
                             </button>
@@ -228,6 +248,22 @@
     function deletePostFromModal() {
         if (currentPostId) {
             deletePost(currentPostId);
+        }
+    }
+
+    function approvePost(postId) {
+        if (confirm('Approve and publish this post?')) {
+            fetch(`/admin/post/${postId}/approve`, {
+                method: 'POST'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                });
         }
     }
 

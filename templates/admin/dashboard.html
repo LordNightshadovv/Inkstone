@@ -40,6 +40,7 @@
             <div class="stat-label">Protagonists</div>
             <div class="stat-value">{{ active_protagonists }}</div>
         </div>
+
     </div>
 
     <!-- Two Column Layout -->
@@ -56,14 +57,21 @@
                     <li
                         style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; font-size: 0.875rem;">
                         <div
-                            style="width: 8px; height: 8px; border-radius: 50%; background-color: var(--ink-main); flex-shrink: 0;">
+                            style="width: 8px; height: 8px; border-radius: 50%; background-color: {% if post.status == 'pending' %}#d97706{% else %}var(--ink-main){% endif %}; flex-shrink: 0;">
                         </div>
                         <span style="color: var(--gray-500); white-space: nowrap;">{{ post.publication_date.strftime('%b
                             %d') if post.publication_date else 'N/A' }}</span>
                         <span
-                            style="font-weight: 600; color: var(--gray-900); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{
+                            style="font-weight: 600; color: var(--gray-900); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+                            title="{{ post.title }}">{{
                             post.title }}</span>
-                        <span class="badge badge-success" style="flex-shrink: 0;">Published</span>
+                        {% if post.status == 'pending' %}
+                        <span class="badge"
+                            style="background-color: rgba(245, 158, 11, 0.1); color: #d97706; padding: 2px 8px; font-size: 0.7rem; flex-shrink: 0;">Pending</span>
+                        {% else %}
+                        <span class="badge badge-success"
+                            style="flex-shrink: 0; padding: 2px 8px; font-size: 0.7rem;">Published</span>
+                        {% endif %}
                     </li>
                     {% endfor %}
                 </ul>
