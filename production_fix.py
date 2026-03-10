@@ -81,16 +81,16 @@ def run_fix():
         # Check Post posters
         print("  Checking Post images...")
         for post in Post.query.all():
-            if post.poster_image:
-                if not check_file(post.poster_image, "Post Poster"): missing_count += 1
+            if post.poster_filename:
+                if not check_file(post.poster_filename, "Post Poster"): missing_count += 1
         
         # Check Theme images
         print("  Checking Theme images...")
         for theme in Theme.query.all():
             if theme.card_image:
                 if not check_file(theme.card_image, "Theme Card"): missing_count += 1
-            if theme.bg_image:
-                if not check_file(theme.bg_image, "Theme Background"): missing_count += 1
+            if theme.background_image:
+                if not check_file(theme.background_image, "Theme Background"): missing_count += 1
                 
         # Check Slogan Backgrounds
         print("  Checking Slogan backgrounds...")
