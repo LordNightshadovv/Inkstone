@@ -38,6 +38,7 @@
                             <span>Dashboard</span>
                         </a>
                     </li>
+                    {% if session.get('user_role') == 'admin' %}
                     <li
                         class="nav-item has-submenu {% if request.endpoint in ['admin_cms_users', 'pending_updates'] %}expanded{% endif %}">
                         <a href="javascript:void(0)" class="nav-link submenu-toggle" onclick="toggleSubmenu(this)">
@@ -62,6 +63,7 @@
                             </li>
                         </ul>
                     </li>
+                    {% endif %}
                     <li class="nav-item">
                         <a href="{{ url_for('admin_posts') }}"
                             class="nav-link {% if request.endpoint == 'admin_posts' %}active{% endif %}">

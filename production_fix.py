@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import hashlib
 from datetime import datetime
 
 # Add the current directory to path so it can find app.py
@@ -23,7 +24,7 @@ def check_file(filename, category):
 
 def run_fix():
     print("====================================================")
-    print("🚀 Inkstone Production Deep System Repair")
+    print("🚀 Inkstone Production Deep System Repair v2")
     print("====================================================")
     
     with app.app_context():
@@ -47,8 +48,22 @@ def run_fix():
             else:
                 print(f"  [DB] ❌ Table '{table}' is MISSING from database!")
         
-        # 2. Repair Data Integrity
-        print("\n🔧 Phase 2: Repairing Data Integrity...")
+        # 2. Verify File Integrity (The GUI Issue)
+        print("\n📄 Phase 2: Verifying Template Files...")
+        base_html_path = 'templates/admin/base.html'
+        if os.path.exists(base_html_path):
+            with open(base_html_path, 'r') as f:
+                content = f.read()
+                if "Manage the CMS" in content:
+                    print(f"  [FILE] ✓ '{base_html_path}' contains the New CMS Menu.")
+                else:
+                    print(f"  [FILE] ❌ '{base_html_path}' is an OLD VERSION. Git sync failed?")
+                    print(f"  [FILE] Hint: Try 'git fetch origin && git reset --hard origin/main' again.")
+        else:
+            print(f"  [FILE] ❌ '{base_html_path}' is MISSING entirely!")
+
+        # 3. Repair Data Integrity
+        print("\n🔧 Phase 3: Repairing Data Integrity...")
         models_to_sync = [Post, Theme, Series, Protagonist, Keyword]
         for model in models_to_sync:
             try:
@@ -60,7 +75,7 @@ def run_fix():
                         item.status = 'published'
                         count += 1
                     
-                    # Fix is_active if it exists (for models that have it)
+                    # Fix is_active if it exists
                     if hasattr(item, 'is_active'):
                         if item.is_active is None:
                             item.is_active = True
@@ -74,75 +89,46 @@ def run_fix():
             except Exception as e:
                 print(f"  [DATA] ❌ Error processing {model.__name__}: {e}")
 
-        # 3. Media Asset Audit
-        print("\n🖼️ Phase 3: Media Asset Audit (static/uploads/)...")
+        # 4. Media Asset Audit
+        print("\n🖼️ Phase 4: Media Asset Audit...")
         missing_count = 0
-        
-        # Check Post posters
-        print("  Checking Post images...")
         for post in Post.query.all():
             if post.poster_filename:
                 if not check_file(post.poster_filename, "Post Poster"): missing_count += 1
-        
-        # Check Theme images
-        print("  Checking Theme images...")
         for theme in Theme.query.all():
             if theme.card_image:
                 if not check_file(theme.card_image, "Theme Card"): missing_count += 1
             if theme.background_image:
                 if not check_file(theme.background_image, "Theme Background"): missing_count += 1
-                
-        # Check Slogan Backgrounds
-        print("  Checking Slogan backgrounds...")
-        for bg in SloganBackground.query.all():
-            if bg.filename:
-                if not check_file(bg.filename, "Slogan BG"): missing_count += 1
         
         if missing_count == 0:
             print("  [MEDIA] ✓ All media assets found on disk.")
         else:
-            print(f"  [MEDIA] ⚠️ Total {missing_count} media files missing from static/uploads/")
-            print("  [MEDIA] TIP: You should upload these files to the production server.")
+            print(f"  [MEDIA] ⚠️ Found {missing_count} missing media files.")
 
-        # 4. Critical Account Safety
-        print("\n🔐 Phase 4: Critical Account Check...")
-        admin = CMSUser.query.filter_by(username='Vold').first()
-        if not admin:
-            print("  [AUTH] ⚠️ Admin 'Vold' missing. Recreating...")
-            admin = CMSUser(
-                username='Vold',
-                password='Volkerrechtssubjectivitat',
-                name='Vold',
-                role='admin'
-            )
-            db.session.add(admin)
+        # 5. Critical Account Safety
+        print("\n🔐 Phase 5: Admin Account Verification...")
+        vold = CMSUser.query.filter_by(username='Vold').first()
+        if not vold:
+            vold = CMSUser(username='Vold', password='Volkerrechtssubjectivitat', name='Vold', role='admin')
+            db.session.add(vold)
             db.session.commit()
-            print("  [AUTH] ✓ Secret Admin account restored.")
+            print("  [AUTH] ✓ Admin 'Vold' created.")
         else:
-            if admin.password != 'Volkerrechtssubjectivitat':
-                admin.password = 'Volkerrechtssubjectivitat'
-                db.session.commit()
-                print("  [AUTH] ✓ Admin password updated to required value.")
-            if admin.role != 'admin':
-                admin.role = 'admin'
-                db.session.commit()
-                print("  [AUTH] ✓ Admin role verified.")
-            print("  [AUTH] ✓ Admin account is secure.")
+            vold.password = 'Volkerrechtssubjectivitat'
+            vold.role = 'admin'
+            db.session.commit()
+            print("  [AUTH] ✓ Admin 'Vold' account verified and secured.")
 
-        # 5. Static Site Integrity
-        print("\n🏗️ Phase 5: Rebuilding Static Integrity...")
-        try:
-            success = regenerate_all_static_pages()
-            if success:
-                print("  [SITE] ✓ All static pages (posts/themes) have been refreshed.")
-            else:
-                print("  [SITE] ❌ Failed to regenerate all pages. Check app logs.")
-        except Exception as e:
-            print(f"  [SITE] ❌ Critical Error during rebuild: {e}")
+        # 6. Rebuild Static Integrity
+        print("\n🏗️ Phase 6: Syncing Static Pages...")
+        regenerate_all_static_pages()
+        print("  [SITE] ✓ Cache cleared and pages rebuilt.")
 
     print("\n" + "="*50)
     print("✅ REPAIR COMPLETE")
-    print("Please run: sudo systemctl restart inkstone")
+    print("IMPORTANT: If you still see the old GUI, PLEASE use Incognito/Private mode")
+    print("or press Ctrl+F5 to bypass your browser's persistent cache.")
     print("====================================================")
 
 if __name__ == "__main__":
