@@ -62,6 +62,18 @@ Download the code changes we just pushed.
 git pull
 ```
 
+### 3.5 Confirm you updated the *live* directory (prevents “sometimes old CMS”)
+If you ever see an old login page/CMS **intermittently**, it usually means **two different services or code copies** are serving traffic.
+
+Sanity-check where you are and what commit you pulled:
+
+```bash
+pwd
+git rev-parse --short HEAD
+```
+
+Make sure this directory matches your app service **WorkingDirectory** (systemd/supervisor/pm2) and nginx upstream target.
+
 ### 4. Apply Database Migrations (CRITICAL STEP)
 This command will safely apply the new database structure (adding columns) **without deleting any of your existing users, posts, or images**.
 
@@ -93,6 +105,71 @@ sudo supervisorctl restart inkstone
 
 ---
 
+## Recommended Production Layout (prevents lost uploads + mixed versions)
+
+### 1) Keep uploads outside the git checkout (persistent)
+Your nginx log `open() ... static/uploads/... failed (2: No such file or directory)` strongly suggests uploads are missing or you’re serving from the wrong path. The safest fix is: **store uploads outside the repo**.
+
+Create a persistent uploads directory:
+
+```bash
+sudo mkdir -p /var/lib/inkstone/uploads
+```
+
+Then pick one of these approaches:
+
+- **Option A (symlink)**: keep app + nginx paths unchanged by symlinking `static/uploads`:
+
+```bash
+cd /web/flask_app/Inkstone   # change to your real repo path
+rm -rf static/uploads
+ln -s /var/lib/inkstone/uploads static/uploads
+```
+
+- **Option B (environment variable)**: configure the app to write uploads to an absolute path by setting `INKSTONE_UPLOAD_DIR=/var/lib/inkstone/uploads`.
+
+(This repo already supports this env var in `app.py`.)
+
+### 2) Use a single service with explicit WorkingDirectory + stable env
+If you use systemd, a minimal unit should include:
+- explicit `WorkingDirectory`
+- a stable `SECRET_KEY`
+- (optional) `INKSTONE_RELEASE` for troubleshooting
+- (optional) `INKSTONE_UPLOAD_DIR` for persistent uploads
+
+Example (adapt paths and user):
+
+```ini
+[Unit]
+Description=Inkstone (gunicorn)
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/web/flask_app/Inkstone
+Environment="SECRET_KEY=<<set-a-long-random-string>>"
+Environment="INKSTONE_UPLOAD_DIR=/var/lib/inkstone/uploads"
+Environment="INKSTONE_RELEASE=prod"
+ExecStart=/web/flask_app/Inkstone/venv/bin/gunicorn --workers 2 --bind 127.0.0.1:8000 app:app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Key point: **only one service** should be running for `inkstone.blog`.
+### 3) Ensure nginx serves uploads from the same place your app writes
+If you use the symlink approach, your existing `/static/` config will usually work.
+
+If you use the absolute uploads dir without symlink, add an nginx mapping like:
+
+```nginx
+location /static/uploads/ {
+    alias /var/lib/inkstone/uploads/;
+    try_files $uri =404;
+}
+```
 ## Phase 3: Verification
 Visit your production website and try out the new features (like adjusting the `frame_color` or adding an `is_initiative` project). 
 

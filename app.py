@@ -38,20 +38,39 @@ app = Flask(__name__)
 # Load configuration from the Config class
 app.config.from_object(Config)
 
-# Configure upload folder - use persistent storage on Azure
+# --- Deployment/runtime configuration ---
+#
+# Note: Aliyun production should provide stable env vars (especially SECRET_KEY) and
+# should store uploads in a persistent directory that is NOT wiped by deploys.
+#
+# Allow explicit override first (works across all environments).
+app.config['UPLOAD_FOLDER'] = os.environ.get('INKSTONE_UPLOAD_DIR') or app.config.get('UPLOAD_FOLDER')
+app.config['STATIC_POSTS_FOLDER'] = os.environ.get('INKSTONE_STATIC_POSTS_DIR') or app.config.get('STATIC_POSTS_FOLDER')
+
+# Configure default folders - use persistent storage on Azure
 # Azure runs code from /tmp but only /home persists
-if os.environ.get('WEBSITE_INSTANCE_ID'):  # Running on Azure
-    home_dir = os.environ.get('HOME', '/home')
-    app.config['UPLOAD_FOLDER'] = os.path.join(home_dir, 'site', 'wwwroot', 'uploads')
-    # Also configure static posts folder for generated HTML files
-    app.config['STATIC_POSTS_FOLDER'] = os.path.join(home_dir, 'site', 'wwwroot', 'static', 'posts')
-else:  # Local development
-    app.config['UPLOAD_FOLDER'] = 'static/uploads'
-    app.config['STATIC_POSTS_FOLDER'] = 'static/posts'
+if not app.config.get('UPLOAD_FOLDER') or not app.config.get('STATIC_POSTS_FOLDER'):
+    if os.environ.get('WEBSITE_INSTANCE_ID'):  # Running on Azure
+        home_dir = os.environ.get('HOME', '/home')
+        app.config['UPLOAD_FOLDER'] = app.config.get('UPLOAD_FOLDER') or os.path.join(home_dir, 'site', 'wwwroot', 'uploads')
+        # Also configure static posts folder for generated HTML files
+        app.config['STATIC_POSTS_FOLDER'] = app.config.get('STATIC_POSTS_FOLDER') or os.path.join(home_dir, 'site', 'wwwroot', 'static', 'posts')
+    else:  # Default / local / Aliyun if not overridden
+        app.config['UPLOAD_FOLDER'] = app.config.get('UPLOAD_FOLDER') or 'static/uploads'
+        app.config['STATIC_POSTS_FOLDER'] = app.config.get('STATIC_POSTS_FOLDER') or 'static/posts'
 
 # Ensure folders exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config.get('STATIC_POSTS_FOLDER', 'static/posts'), exist_ok=True)
+
+# A simple release identifier used for cache-busting and troubleshooting.
+APP_RELEASE = (
+    os.environ.get('INKSTONE_RELEASE')
+    or os.environ.get('RELEASE')
+    or os.environ.get('GIT_SHA')
+    or os.environ.get('SOURCE_VERSION')
+    or datetime.utcnow().strftime('%Y%m%d%H%M%S')
+)
 
 # Enable compression for all responses
 compress = Compress()
@@ -76,6 +95,29 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 # --- Forms ---
+
+# --- Response hardening for admin correctness ---
+@app.after_request
+def add_admin_no_cache_headers(response):
+    """
+    Admin UI must not be cached by browsers/proxies, otherwise stale HTML/CSS can
+    present as a 'corrupted' or old CMS intermittently.
+    """
+    try:
+        if request.path.startswith('/admin'):
+            response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+            response.headers['X-Inkstone-Release'] = APP_RELEASE
+    except Exception:
+        # Never break responses due to header logic.
+        pass
+    return response
+
+
+@app.context_processor
+def inject_app_release():
+    return {'app_release': APP_RELEASE}
 
 # Form for the admin login page
 class LoginForm(FlaskForm):

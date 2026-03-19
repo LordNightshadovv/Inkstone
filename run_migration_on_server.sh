@@ -10,6 +10,7 @@ echo "==============================================="
 # 1. Ensure we execute from the project directory
 cd "$(dirname "$0")"
 echo "Working directory: $(pwd)"
+echo "Git commit: $(git rev-parse --short HEAD 2>/dev/null || echo 'unknown')"
 
 # 2. Activate virtual environment if it exists
 if [ -d "venv" ]; then
@@ -24,6 +25,9 @@ fi
 
 # 3. Set the Flask app entrypoint
 export FLASK_APP=app.py
+
+# 3.1 Optional release stamp for troubleshooting (used by admin UI)
+export INKSTONE_RELEASE="${INKSTONE_RELEASE:-$(git rev-parse --short HEAD 2>/dev/null || date +%Y%m%d%H%M%S)}"
 
 # 4. Run database upgrade
 # This uses Flask-Migrate (Alembic) to only apply schema updates as defined in your migrations folder.

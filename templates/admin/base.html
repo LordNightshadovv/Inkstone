@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>{% block title %}Inkstone CMS{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='admin_style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_style.css', v=app_release) }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -146,6 +146,10 @@
                                 session.get('user_role', 'Admin') }}</div>
                         </div>
                     </div>
+                </div>
+
+                <div style="padding: 0 1rem 0.75rem 1rem; font-size: 0.75rem; color: var(--admin-gray-500);">
+                    Release: <span style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;">{{ app_release }}</span>
                 </div>
 
                 <a href="{{ url_for('index') }}" target="_blank" class="nav-link">
